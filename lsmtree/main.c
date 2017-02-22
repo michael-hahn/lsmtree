@@ -69,8 +69,9 @@ int main(int argc, const char * argv[]) {
             //process user command and make sure they are well-formed
             char * token;
             token = strtok(command_buffer, " ");
-            //the command must be a single character (p, g, r, d, or l) with either nothing or a space appended afterwards
-            if (token[1] != '\0')
+            fprintf(stdout, "The command is: %s\n", token);
+            //the command must be a single character (p, g, r, d, l, or s) with either nothing or a space appended afterwards
+            if (token[1] != '\0' && token[1] != '\n')
                 fprintf(stderr, "Command is a single character. See usage...\n");
             //process single character command
             else {
@@ -244,7 +245,10 @@ int main(int argc, const char * argv[]) {
                         token = strtok(NULL, " ");
                         if (token != NULL) fprintf(stderr, "Too many arguments. File load discarded...\n");
                         else {
+                            unsigned long path_length = strlen(path);
+                            if (path[path_length - 1] == '\n') path[path_length - 1] = '\0';
                             fprintf(stdout, "LOAD file from %s to the database...\n", path);
+                            FILE *fh = fopen(path, "r");
                             //TODO: load file to the database here
                         }
                     }

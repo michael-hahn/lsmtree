@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4C1006D31E6DAD7E0079BF50 /* buffer.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C1006D11E6DAD7E0079BF50 /* buffer.c */; };
+		4C1006D91E6FC4E70079BF50 /* skiplist.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C1006D71E6FC4E70079BF50 /* skiplist.c */; };
+		4C1006DE1E6FC5560079BF50 /* test_skiplist.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C1006DC1E6FC5560079BF50 /* test_skiplist.c */; };
 		4CF84F101E53F0F40086CF6C /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF84F0F1E53F0F40086CF6C /* main.c */; };
 		4CF84F181E53FC560086CF6C /* utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CF84F161E53FC560086CF6C /* utils.c */; };
 /* End PBXBuildFile section */
@@ -24,6 +27,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		4C1006D11E6DAD7E0079BF50 /* buffer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = buffer.c; sourceTree = "<group>"; };
+		4C1006D21E6DAD7E0079BF50 /* buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = buffer.h; sourceTree = "<group>"; };
+		4C1006D71E6FC4E70079BF50 /* skiplist.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = skiplist.c; path = ../../../lsmtree/src/skiplist.c; sourceTree = "<group>"; };
+		4C1006D81E6FC4E70079BF50 /* skiplist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = skiplist.h; path = ../../../lsmtree/src/skiplist.h; sourceTree = "<group>"; };
+		4C1006DA1E6FC5560079BF50 /* debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = debug.h; path = ../../../lsmtree/src/debug.h; sourceTree = "<group>"; };
+		4C1006DC1E6FC5560079BF50 /* test_skiplist.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = test_skiplist.c; path = ../../../lsmtree/src/test_skiplist.c; sourceTree = "<group>"; };
+		4C1006DD1E6FC5560079BF50 /* util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = util.h; path = ../../../lsmtree/src/util.h; sourceTree = "<group>"; };
 		4CF84F0C1E53F0F30086CF6C /* lsmtree */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = lsmtree; sourceTree = BUILT_PRODUCTS_DIR; };
 		4CF84F0F1E53F0F40086CF6C /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		4CF84F161E53FC560086CF6C /* utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = utils.c; sourceTree = "<group>"; };
@@ -61,8 +71,15 @@
 			isa = PBXGroup;
 			children = (
 				4CF84F0F1E53F0F40086CF6C /* main.c */,
+				4C1006D71E6FC4E70079BF50 /* skiplist.c */,
+				4C1006D81E6FC4E70079BF50 /* skiplist.h */,
 				4CF84F161E53FC560086CF6C /* utils.c */,
+				4C1006DA1E6FC5560079BF50 /* debug.h */,
+				4C1006DC1E6FC5560079BF50 /* test_skiplist.c */,
+				4C1006DD1E6FC5560079BF50 /* util.h */,
 				4CF84F171E53FC560086CF6C /* utils.h */,
+				4C1006D11E6DAD7E0079BF50 /* buffer.c */,
+				4C1006D21E6DAD7E0079BF50 /* buffer.h */,
 			);
 			path = lsmtree;
 			sourceTree = "<group>";
@@ -124,6 +141,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				4CF84F101E53F0F40086CF6C /* main.c in Sources */,
+				4C1006DE1E6FC5560079BF50 /* test_skiplist.c in Sources */,
+				4C1006D31E6DAD7E0079BF50 /* buffer.c in Sources */,
+				4C1006D91E6FC4E70079BF50 /* skiplist.c in Sources */,
 				4CF84F181E53FC560086CF6C /* utils.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -153,7 +173,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -196,7 +216,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
@@ -243,6 +263,7 @@
 				4CF84F151E53F0F40086CF6C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

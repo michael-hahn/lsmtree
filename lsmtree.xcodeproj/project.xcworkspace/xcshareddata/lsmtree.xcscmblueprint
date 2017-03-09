@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "84248F52FC8D0865D6ECB85D792E05F34B9232BE",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "48CFA54F0118406B99DB1A0CF14CCE7E20D630A9" : 0,
+    "84248F52FC8D0865D6ECB85D792E05F34B9232BE" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "1BEEC225-FB63-4983-8D78-5CD1716ACB38",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "48CFA54F0118406B99DB1A0CF14CCE7E20D630A9" : "..\/lsmtree",
+    "84248F52FC8D0865D6ECB85D792E05F34B9232BE" : "lsmtree\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "lsmtree",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "lsmtree.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/intfrr\/lsmtree.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "48CFA54F0118406B99DB1A0CF14CCE7E20D630A9"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/michael-hahn\/lsmtree.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "84248F52FC8D0865D6ECB85D792E05F34B9232BE"
+    }
+  ]
+}

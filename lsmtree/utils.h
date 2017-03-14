@@ -10,6 +10,8 @@
 #define utils_h
 
 #include <stdio.h>
+#include "cache.hpp"
+#include "database.hpp"
 
 /**
  * trim away extra whitespace and leave only one
@@ -30,4 +32,15 @@ int check_valid_int(char* input_str);
  */
 int to_int(char int_string[]);
 
+/**
+ * read a binary file that contains key-value pairs
+ */
+int read_binary_file (std::string file_path, Cache* cache, Db* database);
+
+/**
+ * This is for debugging only
+ */
+int write_binary_file ();
+
+//#include "utils.cpp"
 #endif /* utils_h */

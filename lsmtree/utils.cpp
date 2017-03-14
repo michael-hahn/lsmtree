@@ -7,8 +7,12 @@
 //
 
 #include <ctype.h>
-
-#include "utils.h"
+#include <string>
+#include <fstream>
+#include <iostream>
+#include "cache.hpp"
+#include "database.hpp"
+//#include "utils.h"
 
 void remove_extra_whitespace(char* input_str) {
     int i, x;
@@ -56,4 +60,43 @@ int to_int(char* int_string) {
     if (sign == -1)
         n = -n;
     return n;
+}
+
+int read_binary_file (std::string file_path, Cache* cache, Db* database) {
+    int key;
+    int value;
+    
+    std::ifstream file;
+    file.exceptions (std::ifstream::failbit | std::ifstream::badbit);
+    file.open (file_path, std::ifstream::binary);
+    if (file.is_open()) {
+        file.seekg(0, std::ios::end);
+        int size = (int) file.tellg();
+        file.seekg(0, std::ios::beg);
+
+        while ((int) file.tellg() < size) {
+            file.read((char*)&key, 4);
+            
+            file.read((char*)&value, 4);
+            
+            std::cout << "LOGINFO:\t\t" << "Inserting " << key << " : " << value << " from binary file..." << std::endl;
+            cache->insert(key, value, database);
+        }
+        std::cout << "LOGINFO:\t\t" << "Insertion from binary file is done..." << std::endl;
+        file.close();
+    } else {
+        std::cout << "LOGFATAL:\t\t" << "Opening binary file failed..." << std::endl;
+    }
+    return 0;
+}
+
+
+//For debugging only. File path is hardcoded.
+int write_binary_file () {
+    std::ofstream file ("/Users/Michael/Documents/Harvard/g1/cs265/xcode/binary.dat", std::ofstream::binary);
+    for (int i = 0; i < 100; i++) {
+        file.write((char*) &i, sizeof(i));
+    }
+    file.close();
+    return 0;
 }

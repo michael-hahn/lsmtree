@@ -1,0 +1,6 @@
+l "/Users/Michael/Documents/Harvard/g1/cs265/xcode/binary.dat”
+p 1 3
+p 2 4
+g 2
+d 1
+s

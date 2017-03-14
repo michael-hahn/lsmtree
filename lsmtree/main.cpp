@@ -27,7 +27,7 @@ int main(int argc, const char * argv[]) {
     Db database;
     
     //initialize cache
-    Cache cache;
+    Cache cache(20, 0.001);
     
     //write a binary file
     //for debugging only
@@ -153,7 +153,7 @@ int main(int argc, const char * argv[]) {
                                 token = strtok(NULL, " ");
                                 if (token != NULL) fprintf(stderr, "Too many arguments. Retrieval discarded...\n");
                                 else {
-                                    fprintf(stdout, "GET value from the key: %d if key is in the database...\n", int_key);
+                                    fprintf(stdout, "GET value from the key: %d if key is in the cache/database...\n", int_key);
                                     //TODO: get from the database here
                                     //std::cout << "LOGINFO:\t\t" << database.get_value_or_blank(int_key) << std::endl;
                                     std::cout << "LOGINFO:\t\t" << cache.get_value_or_blank(int_key, &database) << std::endl;

@@ -31,6 +31,8 @@ private:
     void construct_cache_filter (int estimate_number_insertion, double false_pos_prob);
     
 public:
+    Cache(int estimate_number_insertion, double false_pos_prob);
+    
     bool in_cache (int key);
     
     void insert (int key, int value, Db* database);

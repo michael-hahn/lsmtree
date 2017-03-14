@@ -12,6 +12,11 @@
 #include <set>
 #include <cassert>
 
+Cache::Cache(int estimate_number_insertion, double false_pos_prob){
+    std::cout << "LOGINFO:\t\t" << "Constructing cache bloom filter..." << std::endl;
+    construct_cache_filter(estimate_number_insertion, false_pos_prob);
+}
+
 void Cache::construct_cache_filter (int estimate_number_insertion, double false_pos_prob) {
     bloom_parameters parameters;
     parameters.projected_element_count = estimate_number_insertion;

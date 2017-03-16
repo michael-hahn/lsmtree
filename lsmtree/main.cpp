@@ -14,6 +14,7 @@
 #include "utils.cpp"
 #include "database.hpp"
 #include "cache.hpp"
+#include "tree.hpp"
 
 #define MAX_STDIN_BUFFER_SIZE 1024
 
@@ -22,17 +23,20 @@
 extern int errno;
 
 int main(int argc, const char * argv[]) {
-
-    //initialize database
-    Db database;
     
     //initialize cache
     Cache cache(20, 0.001);
+
+    //initialize database
+    Db database(50, 0.001);
     
     //write a binary file
     //for debugging only
     //write_binary_file();
     
+    //initialize B+ tree
+    Tree btree;
+ 
     //if the input is from the terminal, output an interactive marker at the beginning of the command
     char* control_message = (char*)"";
     if (isatty(fileno(stdin))) {
@@ -52,28 +56,6 @@ int main(int argc, const char * argv[]) {
             break;
         }
         
-        /** six commands are supported
-         *  put: p key:int value:int
-         *  ** duplicates are not supported; repeated put of a key updates the value
-         *  ** no outputs
-         *
-         *  get: g key:int
-         *  ** returns the current value associated with the key; blank if key not in the tree
-         *
-         *  range: r key1:int key2:int
-         *  ** key1 inclusive, key2 exclusive; blank line if no keys in the range; otherwise key:value key:value
-         *
-         *  delete: d key:int
-         *  ** deletion of non-existing key has no effect; no output generated
-         *
-         *  load: l "path/to/file"
-         *
-         *  print status: s
-         *  ** Total Pairs: count
-         *  ** LVL1: count, LVL2: count, ..., LVLN: count
-         *  ** key:value:level key:value:level ...
-         *
-         */
         //command must at least be one character long
         if (strlen(command_buffer) > 0) {
             remove_extra_whitespace(command_buffer);
@@ -113,7 +95,7 @@ int main(int argc, const char * argv[]) {
                                             fprintf(stdout, "INSERT key-value pair: %d %d to the database...\n", int_key, int_value);
                                             //TODO: insert to the database here
                                             //database.insert_or_update(int_key, int_value);
-                                            cache.insert(int_key, int_value, &database);
+                                            cache.insert(int_key, int_value, &database, &btree);
                                         }
                                     }
                                 }
@@ -133,7 +115,7 @@ int main(int argc, const char * argv[]) {
                                     fprintf(stdout, "INSERT key-value pair: %d %d to the database...\n", int_key, int_value);
                                     //TODO: insert to the database here
                                     //database.insert_or_update(int_key, int_value);
-                                    cache.insert(int_key, int_value, &database);
+                                    cache.insert(int_key, int_value, &database, &btree);
                                 }
                             }
                         }
@@ -156,7 +138,7 @@ int main(int argc, const char * argv[]) {
                                     fprintf(stdout, "GET value from the key: %d if key is in the cache/database...\n", int_key);
                                     //TODO: get from the database here
                                     //std::cout << "LOGINFO:\t\t" << database.get_value_or_blank(int_key) << std::endl;
-                                    std::cout << "LOGINFO:\t\t" << cache.get_value_or_blank(int_key, &database) << std::endl;
+                                    std::cout << "LOGINFO:\t\t" << cache.get_value_or_blank(int_key, &database, &btree) << std::endl;
                                 }
                             }
                         } else {
@@ -168,7 +150,7 @@ int main(int argc, const char * argv[]) {
                                 fprintf(stdout, "GET value from the key: %d if key is in the database...\n", int_key);
                                 //TODO: get from the database here
                                 //std::cout << "LOGINFO:\t\t" << database.get_value_or_blank(int_key) << std::endl;
-                                std::cout << "LOGINFO:\t\t" << cache.get_value_or_blank(int_key, &database) << std::endl;
+                                std::cout << "LOGINFO:\t\t" << cache.get_value_or_blank(int_key, &database, &btree) << std::endl;
                             }
                         }
                     }
@@ -200,7 +182,7 @@ int main(int argc, const char * argv[]) {
                                                 fprintf(stdout, "GET values from key range: %d - %d in the database...\n", int_from, int_to);
                                                 //TODO: get from the database here
                                                 //std::cout << "LOGINFO:\t\t" << database.range(int_from, int_to) << std::endl;
-                                                std::cout << "LOGINFO:\t\t" << cache.range(int_from, int_to, &database) << std::endl;
+                                                std::cout << "LOGINFO:\t\t" << cache.range(int_from, int_to, &database, &btree) << std::endl;
                                             } else fprintf(stderr, "From value must be smaller than or equal to to value. Range request discarded...\n");
                                         }
                                     }
@@ -222,7 +204,7 @@ int main(int argc, const char * argv[]) {
                                         fprintf(stdout, "GET values from key range: %d - %d in the database...\n", int_from, int_to);
                                         //TODO: get from the database here
                                         //std::cout << "LOGINFO:\t\t" << database.range(int_from, int_to) << std::endl;
-                                        std::cout << "LOGINFO:\t\t" << cache.range(int_from, int_to, &database) << std::endl;
+                                        std::cout << "LOGINFO:\t\t" << cache.range(int_from, int_to, &database, &btree) << std::endl;
                                     } else fprintf(stderr, "From value must be smaller than or equal to to value. Range request discarded...\n");
                                 }
                             }
@@ -246,7 +228,7 @@ int main(int argc, const char * argv[]) {
                                     fprintf(stdout, "DELETE value from the key: %d if key is in the database...\n", int_key);
                                     //TODO: delete from the database here
                                     //database.delete_key(int_key);
-                                    cache.delete_key(int_key, &database);
+                                    cache.delete_key(int_key, &database, &btree);
                                 }
                             }
                         } else {
@@ -258,7 +240,7 @@ int main(int argc, const char * argv[]) {
                                 fprintf(stdout, "DELETE value from the key: %d if key is in the database...\n", int_key);
                                 //TODO: delete from the database here
                                 //database.delete_key(int_key);
-                                cache.delete_key(int_key, &database);
+                                cache.delete_key(int_key, &database, &btree);
                             }
                         }
                     }
@@ -278,7 +260,7 @@ int main(int argc, const char * argv[]) {
                             path_str.erase(std::remove(path_str.begin(), path_str.end(), '"'), path_str.end());
                             std::cout << "LOGINFO:\t\t" << "LOAD file from " << path_str << " to the database...\n" << std::endl;
                             //TODO: load file to the database here
-                            read_binary_file(path_str, &cache, &database);
+                            read_binary_file(path_str, &cache, &database, &btree);
                         }
                     }
                 } else if (strncmp(token, "s", 1) == 0) {
@@ -292,13 +274,16 @@ int main(int argc, const char * argv[]) {
                         std::cout << "LOGINFO:\t\t" << cache.cache_dump().first << std::endl;
                         std::cout << "LOGINFO:\t\t" << "LVL2: "<< database.get_db_size() << std::endl;
                         std::cout << "LOGINFO:\t\t" << database.db_dump() << std::endl;
+                        std::cout << "LOGINFO:\t\t" << "LVL3: "<< btree.tree_dump().first << std::endl;
+                        std::cout << "LOGINFO:\t\t" << btree.tree_dump().second << std::endl;
                     }
+                } else if (strncmp(token, "q", 1) == 0) {
+                    break;
                 } else {
                     fprintf(stderr, "Invalid command received. Please try again...\n");
                 }
             }
         }
     }
-    
     return 0;
 }

@@ -10,10 +10,51 @@
 
 #include <iostream>
 #include <sstream>
+#include <cassert>
+
+Db::Db (int estimate_number_insertion, double false_pos_prob) {
+    std::cout << "LOGINFO:\t\t" << "Constructing database bloom filter..." << std::endl;
+    construct_database_filter(estimate_number_insertion, false_pos_prob);
+}
+
+void Db::construct_database_filter (int estimate_number_insertion, double false_pos_prob) {
+    bloom_parameters parameters;
+    parameters.projected_element_count = estimate_number_insertion;
+    parameters.false_positive_probability = false_pos_prob;
+    
+    if (!parameters) {
+        std::cout << "LOGFATAL:\t\t" << "Invalid database bloom filter parameters" << std::endl;
+        assert(parameters);
+    }
+    
+    parameters.compute_optimal_parameters();
+    
+    bloom_filter filter(parameters);
+    this->database_filter = filter;
+    return;
+}
+
+bool Db::in_database(int key) {
+    if (this->database_filter.contains(key)) {
+        std::cout << "LOGINFO:\t\t" << "Database bloom filter contains " << key << std::endl;
+        return true;
+    } else {
+        std::cout << "LOGINFO:\t\t" << "Database bloom filter does NOT contain " << key << std::endl;
+        return false;
+    }
+}
 
 
-
-void Db::insert_or_update (int key, int value) {
+void Db::insert_or_update (int key, int value, Tree* btree) {
+    this->database_filter.insert(key);
+    if (this->database.size() >= MAXDATABASESIZE) {
+        for (int i = 0; i < MAXDATABASESIZE / 2; i++) {
+            std::map<int, int>::iterator it = this->database.begin();
+            btree->insert_or_update(it->first, it->second);
+            this->database.erase(it);
+            std::cout << "LOGINFO:\t\t" << "Insertion to database causes flush " << it->first << " : " << it->second << " to B+ Tree." << std::endl;
+        }
+    }
     std::pair<std::map<int,int>::iterator,bool> ret;
     ret = this->database.insert ( std::pair<int,int>(key,value) );
     if (ret.second==false) {
@@ -27,21 +68,34 @@ void Db::insert_or_update (int key, int value) {
     }
 }
 
-std::string Db::get_value_or_blank (int key) {
+std::string Db::get_value_or_blank (int key, Tree* btree) {
     std::string rtn = "";
-    std::map<int, int>::iterator it;
-    it = this->database.find(key);
+    if (in_database(key)) {
+        std::map<int, int>::iterator it;
+        it = this->database.find(key);
     
-    if (it != this->database.end()) {
-        std::stringstream out;
-        out << it->second;
-        rtn = out.str();
+        if (it != this->database.end()) {
+            std::stringstream out;
+            out << it->second;
+            rtn = out.str();
+        } else {
+            std::cout << "LOGINFO:\t\t" << "Database bloom filter returns false positive. Searching B+ tree..." << std::endl;
+            rtn = btree->get_value_or_blank(key);
+        }
+    } else {
+        std::cout << "LOGINFO:\t\t" << "No match found in database according to database bloom filter. Searching B+ tree..." << std::endl;
+        rtn = btree->get_value_or_blank(key);
     }
-    
     return rtn;
 }
 
-std::string Db::range (int lower, int upper) {
+// We flush all the values in database to btree when we receive range query
+std::string Db::range (int lower, int upper, Tree* btree) {
+    /**
+     * The following code is for range query in database
+     * With the third level btree we do not need to perform it 
+     ********************
+     
     std::string rtn = "";
     std::map<int, int>::iterator itlower, itupper;
     
@@ -98,10 +152,26 @@ std::string Db::range (int lower, int upper) {
     }
     
     return rtn;
+     */
+    for (std::map<int, int>::iterator it = this->database.begin(); it != this->database.end(); it++) {
+        btree->insert_or_update(it->first, it->second);
+        std::cout << "LOGINFO:\t\t" << "Range query causes flush " << it->first << " : " << it->second << " to btree." << std::endl;
+    }
+    this->database.clear();
+    std::cout << "LOGINFO:\t\t" << "Clear out database." << std::endl;
+    this->database_filter.clear();
+    std::cout << "LOGINFO:\t\t" << "Clear out database bloom filter." << std::endl;
+    return btree->range(lower, upper);
 }
 
-void Db::delete_key (int key) {
-    this->database.erase(key);
+// We delete the key in database and in btree
+void Db::delete_key (int key, Tree* btree) {
+    if (in_database(key)) {
+        std::cout << "LOGINFO:\t\t" << "Remove entry in the database (key is): " << key << std::endl;
+        this->database.erase(key);
+    }
+    std::cout << "LOGINFO:\t\t" << "Remove B+ tree key..." << std::endl;
+    btree->delete_key(key);
     return;
 }
 

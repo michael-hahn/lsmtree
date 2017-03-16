@@ -12,19 +12,31 @@
 #include <stdio.h>
 #include <map>
 #include <string>
+#include "tree.hpp"
+#include "bloom_filter.hpp"
+
+#define MAXDATABASESIZE 50
 
 class Db {
 private:
     std::map<int, int> database;
     
+    bloom_filter database_filter;
+    
+    void construct_database_filter (int estimate_number_insertion, double false_pos_prob);
+    
 public:
-    void insert_or_update (int key, int value);
+    Db (int estimate_number_insertion, double false_pos_prob);
     
-    std::string get_value_or_blank (int key);
+    bool in_database (int key);
     
-    std::string range (int lower, int upper);
+    void insert_or_update (int key, int value, Tree* btree);
     
-    void delete_key (int key);
+    std::string get_value_or_blank (int key, Tree* btree);
+    
+    std::string range (int lower, int upper, Tree* btree);
+    
+    void delete_key (int key, Tree* btree);
     
     std::string db_dump ();
     

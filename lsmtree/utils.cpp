@@ -12,6 +12,7 @@
 #include <iostream>
 #include "cache.hpp"
 #include "database.hpp"
+#include "tree.hpp"
 //#include "utils.h"
 
 void remove_extra_whitespace(char* input_str) {
@@ -62,7 +63,7 @@ int to_int(char* int_string) {
     return n;
 }
 
-int read_binary_file (std::string file_path, Cache* cache, Db* database) {
+int read_binary_file (std::string file_path, Cache* cache, Db* database, Tree* btree) {
     int key;
     int value;
     
@@ -80,7 +81,7 @@ int read_binary_file (std::string file_path, Cache* cache, Db* database) {
             file.read((char*)&value, 4);
             
             std::cout << "LOGINFO:\t\t" << "Inserting " << key << " : " << value << " from binary file..." << std::endl;
-            cache->insert(key, value, database);
+            cache->insert(key, value, database, btree);
         }
         std::cout << "LOGINFO:\t\t" << "Insertion from binary file is done..." << std::endl;
         file.close();

@@ -49,11 +49,11 @@ bool Cache::in_cache (int key) {
 //Always insert at the front if there is space
 //If cache is full, flush half of the cache to disk before insertion
 //also insert to bloom filter
-void Cache::insert (int key, int value, Db* database) {
+void Cache::insert (int key, int value, Db* database, Tree* btree) {
     std::pair<int, int> entry (key, value);
     this->cache_filter.insert(key);
     std::cout << "LOGINFO:\t\t" << "Insertion to cache bloom filter succeeded." << std::endl;
-    if (this->cache.size() < MAXCACHESIZE) {
+    if (this->cache.size() <= MAXCACHESIZE) {
         std::vector<std::pair<int, int>>::iterator it = this->cache.begin();
         this->cache.insert(it, entry);
         std::cout << "LOGINFO:\t\t" << "Insertion to cache succeeded with no flush to disk." << std::endl;
@@ -62,7 +62,7 @@ void Cache::insert (int key, int value, Db* database) {
     } else {
         for (int i = 0; i < MAXCACHESIZE / 2; i++) {
             std::pair<int, int> remove_from_cache = this->cache.back();
-            database->insert_or_update(remove_from_cache.first, remove_from_cache.second);
+            database->insert_or_update(remove_from_cache.first, remove_from_cache.second, btree);
             this->cache.pop_back();
             std::cout << "LOGINFO:\t\t" << "Insertion to cache causes flush " << remove_from_cache.first << " : " << remove_from_cache.second << " to disk." << std::endl;
         }
@@ -77,7 +77,7 @@ void Cache::insert (int key, int value, Db* database) {
 //if cache bloom filter indicates an existance of key in cache, search cache
 //Always start to search from the beginning of the vector since newer value is located at the beginning
 //Otherwise search the database
-std::string Cache::get_value_or_blank (int key, Db* database) {
+std::string Cache::get_value_or_blank (int key, Db* database, Tree* btree) {
     std::string rtn = "";
     if (in_cache(key)) {
         for (std::vector<std::pair<int, int>>::iterator it = this->cache.begin(); it != this->cache.end(); it++) {
@@ -89,40 +89,48 @@ std::string Cache::get_value_or_blank (int key, Db* database) {
                 break;
             }
         }
+        if (rtn == "") {
+            std::cout << "LOGINFO:\t\t" << "Cache bloom filter returns false positive. Searching the database..." << std::endl;
+            rtn = database->get_value_or_blank(key, btree);
+        }
     }
     else {
         std::cout << "LOGINFO:\t\t" << "No match found in cache according to cache bloom filter. Searching the database..." << std::endl;
-        rtn = database->get_value_or_blank(key);
+        rtn = database->get_value_or_blank(key, btree);
     }
     return rtn;
 }
 
 //We flush the whole vector to the database when receiving a range query
 //we also flush the bloom filter
-std::string Cache::range (int lower, int upper, Db* database) {
+std::string Cache::range (int lower, int upper, Db* database, Tree* btree) {
     while (!this->cache.empty()) {
         std::pair<int, int> remove_from_cache = this->cache.back();
-        database->insert_or_update(remove_from_cache.first, remove_from_cache.second);
+        database->insert_or_update(remove_from_cache.first, remove_from_cache.second, btree);
         this->cache.pop_back();
         std::cout << "LOGINFO:\t\t" << "Range query causes flush " << remove_from_cache.first << " : " << remove_from_cache.second << " to disk." << std::endl;
     }
     this->cache_filter.clear();
     std::cout << "LOGINFO:\t\t" << "Clear out cache bloom filter." << std::endl;
-    return database->range(lower, upper);
+    return database->range(lower, upper, btree);
 }
 
-//We need to delete all instances of the key in cache and the database
-void Cache::delete_key (int key, Db* database) {
-    std::vector<std::pair<int, int>>::iterator it = this->cache.begin();
-    while (it != this->cache.end()) {
-        if (it->first == key) {
-            std::cout << "LOGINFO:\t\t" << "Remove entry in the cache: " << it->first << " : " << it->second << std::endl;
-            this->cache.erase(it);
-        } else
-            it++;
+//We need to delete all instances of the key in cache and the database, and also the btree
+//use bloom filter to see if the key is in the cache
+//otherwise, directly go to database
+void Cache::delete_key (int key, Db* database, Tree* btree) {
+    if (in_cache(key)) {
+        std::vector<std::pair<int, int>>::iterator it = this->cache.begin();
+        while (it != this->cache.end()) {
+            if (it->first == key) {
+                std::cout << "LOGINFO:\t\t" << "Remove entry in the cache: " << it->first << " : " << it->second << std::endl;
+                this->cache.erase(it);
+            } else
+                it++;
+        }
     }
     std::cout << "LOGINFO:\t\t" << "Remove database key..." << std::endl;
-    database->delete_key(key);
+    database->delete_key(key, btree);
     return;
 }
 

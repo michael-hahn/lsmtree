@@ -14,6 +14,7 @@
 #include <string>
 #include "database.hpp"
 #include "bloom_filter.hpp"
+#include "tree.hpp"
 
 #define MAXCACHESIZE 20
 
@@ -35,13 +36,13 @@ public:
     
     bool in_cache (int key);
     
-    void insert (int key, int value, Db* database);
+    void insert (int key, int value, Db* database, Tree* btree);
     
-    std::string get_value_or_blank (int key, Db* database);
+    std::string get_value_or_blank (int key, Db* database, Tree* btree);
     
-    std::string range (int lower, int upper, Db* database);
+    std::string range (int lower, int upper, Db* database, Tree* btree);
     
-    void delete_key (int key, Db* database);
+    void delete_key (int key, Db* database, Tree* btree);
     
     std::pair<std::string, int> cache_dump ();
     

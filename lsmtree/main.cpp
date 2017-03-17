@@ -270,6 +270,7 @@ int main(int argc, const char * argv[]) {
                     else {
                         fprintf(stdout, "STATUS is retrieving from the database...\n");
                         //TODO: print status here
+                        std::cout << "LOGINFO:\t\t" << "Total Pairs: " << total_size(&cache, &database, &btree) << std::endl;
                         std::cout << "LOGINFO:\t\t" << "LVL1: "<< cache.cache_dump().second << std::endl;
                         std::cout << "LOGINFO:\t\t" << cache.cache_dump().first << std::endl;
                         std::cout << "LOGINFO:\t\t" << "LVL2: "<< database.get_db_size() << std::endl;

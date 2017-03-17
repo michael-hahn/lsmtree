@@ -10,6 +10,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <set>
 #include "cache.hpp"
 #include "database.hpp"
 #include "tree.hpp"
@@ -89,6 +90,35 @@ int read_binary_file (std::string file_path, Cache* cache, Db* database, Tree* b
         std::cout << "LOGFATAL:\t\t" << "Opening binary file failed..." << std::endl;
     }
     return 0;
+}
+
+unsigned long total_size (Cache* cache, Db* database, Tree* btree) {
+    std::set<int> found_once;
+    std::set<int>::iterator set_it;
+    std::pair<std::set<int>::iterator, bool> set_rtn;
+    
+    std::set<int> cache_keys = cache->all_keys();
+    std::set<int> database_keys = database->all_keys();
+    
+    for (std::set<int>::iterator cache_it = cache_keys.begin(); cache_it != cache_keys.end(); cache_it++) {
+        found_once.insert(*cache_it);
+    }
+    
+    for (std::set<int>::iterator database_it = database_keys.begin(); database_it != database_keys.end(); database_it++) {
+        found_once.insert(*database_it);
+    }
+    
+    unsigned long less = 0;
+    for (std::set<int>::iterator fo_it = found_once.begin(); fo_it != found_once.end(); fo_it++) {
+        if (btree->get_value_or_blank(*fo_it) != "") {
+            std::cout << "LOGINFO:\t\t" << "Found key: " << *fo_it <<  " in the B+ tree." << std::endl;
+            less++;
+        }
+    }
+    unsigned long total_valid_keys = btree->tree_dump().first;
+    total_valid_keys += found_once.size();
+    total_valid_keys -= less;
+    return total_valid_keys;
 }
 
 

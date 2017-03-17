@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <map>
 #include <string>
+#include <set>
 #include "tree.hpp"
 #include "bloom_filter.hpp"
 
@@ -41,6 +42,8 @@ public:
     std::string db_dump ();
     
     unsigned long get_db_size ();
+    
+    std::set<int> all_keys ();
 };
 
 #include "database.cpp"

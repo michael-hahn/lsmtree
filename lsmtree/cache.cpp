@@ -53,7 +53,7 @@ void Cache::insert (int key, int value, Db* database, Tree* btree) {
     std::pair<int, int> entry (key, value);
     this->cache_filter.insert(key);
     std::cout << "LOGINFO:\t\t" << "Insertion to cache bloom filter succeeded." << std::endl;
-    if (this->cache.size() <= MAXCACHESIZE) {
+    if (this->cache.size() < MAXCACHESIZE) {
         std::vector<std::pair<int, int>>::iterator it = this->cache.begin();
         this->cache.insert(it, entry);
         std::cout << "LOGINFO:\t\t" << "Insertion to cache succeeded with no flush to disk." << std::endl;
@@ -157,6 +157,22 @@ std::pair<std::string, int> Cache::cache_dump () {
     }
     return std::pair<std::string, int> (rtn, total_valid);
     
+}
+
+//same as cache_dump but returns a set that holds all valid keys instead of a string
+std::set<int> Cache::all_keys () {
+    std::set<int> found_once;
+    std::set<int>::iterator set_it;
+    std::pair<std::set<int>::iterator, bool> set_rtn;
+    
+    for (std::vector<std::pair<int, int>>::iterator it = this->cache.begin(); it != this->cache.end(); it++) {
+        set_rtn = found_once.insert(it->first);
+        if (set_rtn.second == true) {
+            std::cout << "LOGINFO:\t\t" << "Entry " << it->first << " : " << it->second << " counts into total count." << std::endl;
+        } else
+            std::cout << "LOGINFO:\t\t" << "Entry " << it->first << " : " << it->second << " is old." << std::endl;
+    }
+    return found_once;
 }
 
 

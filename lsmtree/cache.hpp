@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <vector>
 #include <string>
+#include <set>
 #include "database.hpp"
 #include "bloom_filter.hpp"
 #include "tree.hpp"
@@ -45,6 +46,8 @@ public:
     void delete_key (int key, Db* database, Tree* btree);
     
     std::pair<std::string, int> cache_dump ();
+    
+    std::set<int> all_keys ();
     
 };
 

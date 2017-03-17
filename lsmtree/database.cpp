@@ -193,6 +193,14 @@ unsigned long Db::get_db_size () {
     return this->database.size();
 }
 
+std::set<int> Db::all_keys () {
+    std::set<int> keys;
+    for (std::map<int, int>::iterator it = this->database.begin(); it != this->database.end(); ++it) {
+        keys.insert(it->first);
+    }
+    return keys;
+}
+
 
 
 

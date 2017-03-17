@@ -35,7 +35,7 @@ void Cache::construct_cache_filter (int estimate_number_insertion, double false_
 }
 
 bool Cache::in_cache (int key) {
-    if (this->cache_filter.contains(key)) {
+    if (this->cache_filter.contains(key) > 0) {
         std::cout << "LOGINFO:\t\t" << "Cache bloom filter contains " << key << std::endl;
         return true;
     } else {
@@ -51,8 +51,10 @@ bool Cache::in_cache (int key) {
 //also insert to bloom filter
 void Cache::insert (int key, int value, Db* database, Tree* btree) {
     std::pair<int, int> entry (key, value);
-    this->cache_filter.insert(key);
-    std::cout << "LOGINFO:\t\t" << "Insertion to cache bloom filter succeeded." << std::endl;
+    if (!in_cache(key)) {
+        this->cache_filter.insert(key);
+        std::cout << "LOGINFO:\t\t" << "Insertion to cache bloom filter succeeded." << std::endl;
+    } else std::cout << "LOGINFO:\t\t" << "Cache bloom filter already contains this key: " << key << std::endl;
     if (this->cache.size() < MAXCACHESIZE) {
         std::vector<std::pair<int, int>>::iterator it = this->cache.begin();
         this->cache.insert(it, entry);
@@ -90,7 +92,7 @@ std::string Cache::get_value_or_blank (int key, Db* database, Tree* btree) {
             }
         }
         if (rtn == "") {
-            std::cout << "LOGINFO:\t\t" << "Cache bloom filter returns false positive. Searching the database..." << std::endl;
+            std::cout << "LOGINFO:\t\t" << "Cache counting bloom filter returns false positive. Searching the database..." << std::endl;
             rtn = database->get_value_or_blank(key, btree);
         }
     }

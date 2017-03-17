@@ -14,9 +14,14 @@
 #include <string>
 #include "Definitions.hpp"
 #include "BPlusTree.hpp"
+#include "bloom_filter.hpp"
 
 class Tree {
 public:
+    Tree(int estimate_number_insertion, double false_pos_prob);
+    
+    bool in_tree (int key);
+    
     void insert_or_update (int key, int value);
     
     std::string get_value_or_blank (int key);
@@ -29,6 +34,10 @@ public:
     
 private:
     BPlusTree btree;
+    
+    bloom_filter tree_filter;
+    
+    void construct_tree_filter (int estimate_number_insertion, double false_pos_prob);
 };
 
 #include "tree.cpp"

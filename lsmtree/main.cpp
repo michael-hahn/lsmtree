@@ -28,14 +28,14 @@ int main(int argc, const char * argv[]) {
     Cache cache(20, 0.001);
 
     //initialize database
-    Db database(50, 0.001);
+    Db database(100, 0.001);
     
     //write a binary file
     //for debugging only
     //write_binary_file();
     
     //initialize B+ tree
-    Tree btree;
+    Tree btree(100000, 0.01);
  
     //if the input is from the terminal, output an interactive marker at the beginning of the command
     char* control_message = (char*)"";

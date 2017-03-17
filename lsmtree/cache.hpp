@@ -17,7 +17,7 @@
 #include "bloom_filter.hpp"
 #include "tree.hpp"
 
-#define MAXCACHESIZE 20
+#define MAXCACHESIZE 10
 
 class Cache {
 private:
@@ -25,13 +25,8 @@ private:
     
     bloom_filter cache_filter;
     
-    /**
-     * false_pos_prob: (0, 1)
-     * deletion of an element in cache will not have an effect on cache bloom filter
-     * therefore, false positive rate may be higher
-     */
     void construct_cache_filter (int estimate_number_insertion, double false_pos_prob);
-    
+        
 public:
     Cache(int estimate_number_insertion, double false_pos_prob);
     

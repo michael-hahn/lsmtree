@@ -46,7 +46,10 @@ bool Db::in_database(int key) {
 
 
 void Db::insert_or_update (int key, int value, Tree* btree) {
-    this->database_filter.insert(key);
+    if (!in_database(key)) {
+        this->database_filter.insert(key);
+        std::cout << "LOGINFO:\t\t" << "Insertion to database bloom filter succeeded." << std::endl;
+    } else std::cout << "LOGINFO:\t\t" << "Database bloom filter already contains this key: " << key << std::endl;
     if (this->database.size() >= MAXDATABASESIZE) {
         for (int i = 0; i < MAXDATABASESIZE / 2; i++) {
             std::map<int, int>::iterator it = this->database.begin();

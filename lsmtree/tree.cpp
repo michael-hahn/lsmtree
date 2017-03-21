@@ -10,7 +10,7 @@
 #include "tree.hpp"
 
 Tree::Tree(int estimate_number_insertion, double false_pos_prob) {
-    std::cout << "LOGINFO:\t\t" << "Constructing tree bloom filter..." << std::endl;
+    //std::cout << "LOGINFO:\t\t" << "Constructing tree bloom filter..." << std::endl;
     construct_tree_filter(estimate_number_insertion, false_pos_prob);
 }
 
@@ -20,7 +20,7 @@ void Tree::construct_tree_filter (int estimate_number_insertion, double false_po
     parameters.false_positive_probability = false_pos_prob;
     
     if (!parameters) {
-        std::cout << "LOGFATAL:\t\t" << "Invalid tree bloom filter parameters" << std::endl;
+        //std::cout << "LOGFATAL:\t\t" << "Invalid tree bloom filter parameters" << std::endl;
         assert(parameters);
     }
     
@@ -33,10 +33,10 @@ void Tree::construct_tree_filter (int estimate_number_insertion, double false_po
 
 bool Tree::in_tree (int key) {
     if (this->tree_filter.contains(key) > 0) {
-        std::cout << "LOGINFO:\t\t" << "Tree bloom filter contains " << key << std::endl;
+        //std::cout << "LOGINFO:\t\t" << "Tree bloom filter contains " << key << std::endl;
         return true;
     } else {
-        std::cout << "LOGINFO:\t\t" << "Tree bloom filter does NOT contain " << key << std::endl;
+        //std::cout << "LOGINFO:\t\t" << "Tree bloom filter does NOT contain " << key << std::endl;
         return false;
     }
 }
@@ -44,8 +44,8 @@ bool Tree::in_tree (int key) {
 void Tree::insert_or_update (int key, int value) {
     if (!in_tree(key)) {
         this->tree_filter.insert(key);
-        std::cout << "LOGINFO:\t\t" << "Insertion to tree bloom filter succeeded." << std::endl;
-    } else std::cout << "LOGINFO:\t\t" << "Tree bloom filter already contains this key: " << key << std::endl;
+        //std::cout << "LOGINFO:\t\t" << "Insertion to tree bloom filter succeeded." << std::endl;
+    } //else std::cout << "LOGINFO:\t\t" << "Tree bloom filter already contains this key: " << key << std::endl;
     std::string aValue = this->btree.getValue(key);
     std::stringstream value_ss;
     value_ss << value;
@@ -61,9 +61,10 @@ void Tree::insert_or_update (int key, int value) {
 std::string Tree::get_value_or_blank (int key) {
     std::string no_entry = "";
     if (in_tree(key)) {
+    //if (true) {
         return this->btree.getValue(key);
     } else {
-        std::cout << "LOGINFO:\t\t" << "No match found in tree according to tree bloom filter. No entry." << std::endl;
+        //std::cout << "LOGINFO:\t\t" << "No match found in tree according to tree bloom filter. No entry." << std::endl;
         return no_entry;
     }
 }

@@ -25,7 +25,7 @@
 
 #define VERSION "2.0.2"
 
-const int DEFAULT_ORDER{8};
+const int DEFAULT_ORDER{10};
 
 // Minimum order is necessarily 3.  We set the maximum
 // order arbitrarily.  You may change the maximum order.

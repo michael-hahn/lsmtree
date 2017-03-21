@@ -81,10 +81,10 @@ int read_binary_file (std::string file_path, Cache* cache, Db* database, Tree* b
             
             file.read((char*)&value, 4);
             
-            std::cout << "LOGINFO:\t\t" << "Inserting " << key << " : " << value << " from binary file..." << std::endl;
+            //std::cout << "LOGINFO:\t\t" << "Inserting " << key << " : " << value << " from binary file..." << std::endl;
             cache->insert(key, value, database, btree);
         }
-        std::cout << "LOGINFO:\t\t" << "Insertion from binary file is done..." << std::endl;
+        //std::cout << "LOGINFO:\t\t" << "Insertion from binary file is done..." << std::endl;
         file.close();
     } else {
         std::cout << "LOGFATAL:\t\t" << "Opening binary file failed..." << std::endl;
@@ -111,7 +111,7 @@ unsigned long total_size (Cache* cache, Db* database, Tree* btree) {
     unsigned long less = 0;
     for (std::set<int>::iterator fo_it = found_once.begin(); fo_it != found_once.end(); fo_it++) {
         if (btree->get_value_or_blank(*fo_it) != "") {
-            std::cout << "LOGINFO:\t\t" << "Found key: " << *fo_it <<  " in the B+ tree." << std::endl;
+            //std::cout << "LOGINFO:\t\t" << "Found key: " << *fo_it <<  " in the B+ tree." << std::endl;
             less++;
         }
     }

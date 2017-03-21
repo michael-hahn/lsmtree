@@ -16,7 +16,7 @@
 #include "tree.hpp"
 #include "bloom_filter.hpp"
 
-#define MAXDATABASESIZE 50
+#define MAXDATABASESIZE 100
 
 class Db {
 private:

@@ -257,7 +257,7 @@ void BPlusTree::printValue(KeyType aKey, bool aPrintPath, bool aVerbose)
 {
     LeafNode* leaf = findLeafNode(aKey, aPrintPath, aVerbose);
     if (!leaf) {
-        std::cout << "Leaf not found with key " << aKey << "." << std::endl;
+        //std::cout << "Leaf not found with key " << aKey << "." << std::endl;
         return;
     }
     if (aPrintPath) {
@@ -266,26 +266,26 @@ void BPlusTree::printValue(KeyType aKey, bool aPrintPath, bool aVerbose)
     std::cout << "Leaf: " << leaf->toString(aVerbose) << std::endl;
     Record* record = leaf->lookup(aKey);
     if (!record) {
-        std::cout << "Record not found with key " << aKey << "." << std::endl;
+        //std::cout << "Record not found with key " << aKey << "." << std::endl;
         return;
     }
     if (aPrintPath) {
         std::cout << "\t";
     }
-    std::cout << "Record found at location " << std::hex << record << std::dec << ":" << std::endl;
-    std::cout << "\tKey: " << aKey << "   Value: " << record->value() << std::endl;
+    //std::cout << "Record found at location " << std::hex << record << std::dec << ":" << std::endl;
+    //std::cout << "\tKey: " << aKey << "   Value: " << record->value() << std::endl;
 }
 
 std::string BPlusTree::getValue(KeyType aKey) {
     std::string rtn = "";
     LeafNode* leaf = findLeafNode(aKey, false, false);
     if (!leaf) {
-        std::cout << "LOGINFO:\t\t" << "Leaf not found with key " << aKey << "." << std::endl;
+        //std::cout << "LOGINFO:\t\t" << "Leaf not found with key " << aKey << "." << std::endl;
         return rtn;
     }
     Record* record = leaf->lookup(aKey);
     if (!record) {
-        std::cout << "LOGINFO:\t\t" << "Record not found with key " << aKey << "." << std::endl;
+        //std::cout << "LOGINFO:\t\t" << "Record not found with key " << aKey << "." << std::endl;
         return rtn;
     }
     ValueType value = record->value();

@@ -11,6 +11,8 @@
 #include <iostream>
 #include <sstream>
 #include <cassert>
+#include <cmath>
+#include <limits>
 
 Db::Db (int estimate_number_insertion, double false_pos_prob) {
     //std::cout << "LOGINFO:\t\t" << "Constructing database bloom filter..." << std::endl;
@@ -45,21 +47,22 @@ bool Db::in_database(int key) {
 }
 
 
-void Db::insert_or_update (int key, int value, Tree* btree) {
+void Db::insert_or_update (int key, long value, Tree* btree) {
+    //if (value == LONG_MAX) std::cout << "Deletion entry with key " << key << " is inserted into the database." << std::endl;
     if (!in_database(key)) {
         this->database_filter.insert(key);
         //std::cout << "LOGINFO:\t\t" << "Insertion to database bloom filter succeeded." << std::endl;
     } //else std::cout << "LOGINFO:\t\t" << "Database bloom filter already contains this key: " << key << std::endl;
     if (this->database.size() >= MAXDATABASESIZE) {
         for (int i = 0; i < MAXDATABASESIZE / 2; i++) {
-            std::map<int, int>::iterator it = this->database.begin();
+            std::map<int, long>::iterator it = this->database.begin();
             btree->insert_or_update(it->first, it->second);
             this->database.erase(it);
             //std::cout << "LOGINFO:\t\t" << "Insertion to database causes flush " << it->first << " : " << it->second << " to B+ Tree." << std::endl;
         }
     }
-    std::pair<std::map<int,int>::iterator,bool> ret;
-    ret = this->database.insert ( std::pair<int,int>(key,value) );
+    std::pair<std::map<int,long>::iterator,bool> ret;
+    ret = this->database.insert ( std::pair<int,long>(key,value) );
     if (ret.second==false) {
         //std::cout << "LOG_INFO:\t\t" << key << " is already in the database ( " << ret.first->second << " )" << std::endl;
         if (ret.first->second != value) {
@@ -75,13 +78,18 @@ std::string Db::get_value_or_blank (int key, Tree* btree) {
     std::string rtn = "";
     if (in_database(key)) {
     //if (true) {
-        std::map<int, int>::iterator it;
+        std::map<int, long>::iterator it;
         it = this->database.find(key);
     
         if (it != this->database.end()) {
-            std::stringstream out;
-            out << it->second;
-            rtn = out.str();
+            if (it->second == LONG_MAX) {
+                //std::cout << "LOGINFO:\t\t" << "Databse finds the deletion entry in key: " << key << std::endl;
+                return rtn;
+            } else {
+                std::stringstream out;
+                out << it->second;
+                rtn = out.str();
+            }
         } else {
             //std::cout << "LOGINFO:\t\t" << "Database bloom filter returns false positive. Searching B+ tree..." << std::endl;
             rtn = btree->get_value_or_blank(key);
@@ -157,7 +165,7 @@ std::string Db::range (int lower, int upper, Tree* btree) {
     
     return rtn;
      */
-    for (std::map<int, int>::iterator it = this->database.begin(); it != this->database.end(); it++) {
+    for (std::map<int, long>::iterator it = this->database.begin(); it != this->database.end(); it++) {
         btree->insert_or_update(it->first, it->second);
         //std::cout << "LOGINFO:\t\t" << "Range query causes flush " << it->first << " : " << it->second << " to btree." << std::endl;
     }
@@ -169,7 +177,9 @@ std::string Db::range (int lower, int upper, Tree* btree) {
 }
 
 // We delete the key in database and in btree
+// This function is DEPRECATED since deletion optimization
 void Db::delete_key (int key, Tree* btree) {
+    std::cout << "LOGFATAL:\t\t" << "Db::delete_key (This function) should never be called." << std::endl;
     if (in_database(key)) {
         //std::cout << "LOGINFO:\t\t" << "Remove entry in the database (key is): " << key << std::endl;
         this->database.erase(key);
@@ -179,30 +189,33 @@ void Db::delete_key (int key, Tree* btree) {
     return;
 }
 
-std::string Db::db_dump () {
+std::pair<std::string, int> Db::db_dump () {
     std::string rtn = "";
-    
-    for (std::map<int, int>::iterator it = this->database.begin(); it != this->database.end(); ++it) {
-        std::stringstream first_ss;
-        first_ss << it->first;
-        std::stringstream second_ss;
-        second_ss << it->second;
-        rtn += first_ss.str() + ":" + second_ss.str() + ":" + "L2" + " ";
-    }
-    
-    return  rtn;
+    int count = 0;
+    for (std::map<int, long>::iterator it = this->database.begin(); it != this->database.end(); ++it) {
+        if (it->second != LONG_MAX) {
+            std::stringstream first_ss;
+            first_ss << it->first;
+            std::stringstream second_ss;
+            second_ss << it->second;
+            rtn += first_ss.str() + ":" + second_ss.str() + ":" + "L2" + " ";
+            count++;
+        }
+    }    
+    return  std::pair<std::string, int>(rtn, count);
 }
 
-unsigned long Db::get_db_size () {
-    return this->database.size();
-}
-
-std::set<int> Db::all_keys () {
+std::pair<std::set<int>, std::set<int>> Db::all_keys () {
     std::set<int> keys;
-    for (std::map<int, int>::iterator it = this->database.begin(); it != this->database.end(); ++it) {
-        keys.insert(it->first);
+    std::set<int> to_delete;
+    for (std::map<int, long>::iterator it = this->database.begin(); it != this->database.end(); ++it) {
+        if (it->second != LONG_MAX) {
+            keys.insert(it->first);
+        } else {
+            to_delete.insert(it->first);
+        }
     }
-    return keys;
+    return std::pair<std::set<int>, std::set<int>>(keys, to_delete);
 }
 
 

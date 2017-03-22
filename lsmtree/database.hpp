@@ -20,7 +20,7 @@
 
 class Db {
 private:
-    std::map<int, int> database;
+    std::map<int, long> database;
     
     bloom_filter database_filter;
     
@@ -31,7 +31,7 @@ public:
     
     bool in_database (int key);
     
-    void insert_or_update (int key, int value, Tree* btree);
+    void insert_or_update (int key, long value, Tree* btree);
     
     std::string get_value_or_blank (int key, Tree* btree);
     
@@ -39,11 +39,9 @@ public:
     
     void delete_key (int key, Tree* btree);
     
-    std::string db_dump ();
+    std::pair<std::string, int> db_dump ();
     
-    unsigned long get_db_size ();
-    
-    std::set<int> all_keys ();
+    std::pair<std::set<int>, std::set<int>> all_keys ();
 };
 
 #include "database.cpp"

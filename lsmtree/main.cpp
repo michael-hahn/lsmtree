@@ -352,8 +352,8 @@ int main(int argc, const char * argv[]) {
                         std::cout << "LOGINFO:\t\t" << "Total Pairs: " << total_size(&cache, &database, &btree) << std::endl;
                         std::cout << "LOGINFO:\t\t" << "LVL1: "<< cache.cache_dump().second << std::endl;
                         std::cout << "LOGINFO:\t\t" << cache.cache_dump().first << std::endl;
-                        std::cout << "LOGINFO:\t\t" << "LVL2: "<< database.get_db_size() << std::endl;
-                        std::cout << "LOGINFO:\t\t" << database.db_dump() << std::endl;
+                        std::cout << "LOGINFO:\t\t" << "LVL2: "<< database.db_dump().second << std::endl;
+                        std::cout << "LOGINFO:\t\t" << database.db_dump().first << std::endl;
                         std::cout << "LOGINFO:\t\t" << "LVL3: "<< btree.tree_dump().first << std::endl;
                         std::cout << "LOGINFO:\t\t" << btree.tree_dump().second << std::endl;
                     }

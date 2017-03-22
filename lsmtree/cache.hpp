@@ -21,7 +21,7 @@
 
 class Cache {
 private:
-    std::vector<std::pair<int, int>> cache;
+    std::vector<std::pair<int, long>> cache;
     
     bloom_filter cache_filter;
     
@@ -32,7 +32,7 @@ public:
     
     bool in_cache (int key);
     
-    void insert (int key, int value, Db* database, Tree* btree);
+    void insert (int key, long value, Db* database, Tree* btree);
     
     std::string get_value_or_blank (int key, Db* database, Tree* btree);
     
@@ -42,7 +42,7 @@ public:
     
     std::pair<std::string, int> cache_dump ();
     
-    std::set<int> all_keys ();
+    std::pair<std::set<int>, std::set<int>> all_keys ();
     
 };
 

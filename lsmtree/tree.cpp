@@ -7,6 +7,8 @@
 //
 #include <sstream>
 #include <cassert>
+#include <cmath>
+#include <limits>
 #include "tree.hpp"
 
 Tree::Tree(int estimate_number_insertion, double false_pos_prob) {
@@ -41,7 +43,12 @@ bool Tree::in_tree (int key) {
     }
 }
 
-void Tree::insert_or_update (int key, int value) {
+void Tree::insert_or_update (int key, long value) {
+    if (value == LONG_MAX) {
+        //std::cout << "LOGINFO:\t\t" << key << " is to be deleted from the tree instead of inserted." << std::endl;
+        delete_key(key);
+        return;
+    }
     if (!in_tree(key)) {
         this->tree_filter.insert(key);
         //std::cout << "LOGINFO:\t\t" << "Insertion to tree bloom filter succeeded." << std::endl;

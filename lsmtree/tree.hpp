@@ -22,7 +22,7 @@ public:
     
     bool in_tree (int key);
     
-    void insert_or_update (int key, int value);
+    void insert_or_update (int key, long value);
     
     std::string get_value_or_blank (int key);
     

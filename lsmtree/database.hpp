@@ -37,6 +37,8 @@ public:
     
     std::string range (int lower, int upper, Tree* btree);
     
+    void efficient_range (int lower, int upper, Tree* btree, std::map<int, long>& result);
+    
     void delete_key (int key, Tree* btree);
     
     std::pair<std::string, int> db_dump ();

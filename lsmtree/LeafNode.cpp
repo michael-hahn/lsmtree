@@ -99,6 +99,10 @@ std::pair<unsigned long, std::string> LeafNode::key_value_pairs() const {
     return pair;
 }
 
+std::vector<std::pair<KeyType, Record*>> LeafNode::get_mappings() {
+    return fMappings;
+}
+
 int LeafNode::createAndInsertRecord(KeyType aKey, ValueType aValue)
 {
     Record* existingRecord = lookup(aKey);

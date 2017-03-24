@@ -65,6 +65,8 @@ public:
     /// @param[in] aVerbose Determins whether printing should include addresses.
     void printLeaves(bool aVerbose = false);
     
+    LeafNode* find_first_leaf_node(Node* aRoot);
+    
     /// Same as printLeaves function
     /// Except it retruns a string instead of I/O
     std::pair<unsigned long, std::string> print_leaves_string ();
@@ -99,6 +101,8 @@ public:
     /// This B+ tree treats each such input as both a new value and the key
     /// under which to store it.
     void readInputFromFile(std::string aFileName);
+    
+    Node* getRoot();
 private:
     void startNewTree(KeyType aKey, ValueType aValue);
     void insertIntoLeaf(KeyType aKey, ValueType aValue);

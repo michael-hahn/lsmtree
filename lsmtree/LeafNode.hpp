@@ -59,6 +59,7 @@ public:
     void copyRange(std::vector<EntryType>& aVector);
     std::string toString(bool aVerbose = false) const override;
     std::pair<unsigned long, std::string> key_value_pairs() const;
+    std::vector<std::pair<KeyType, Record*>> get_mappings();
 private:
     void copyHalfFrom(std::vector<MappingType>& aMappings);
     void copyAllFrom(std::vector<MappingType>& aMappings);

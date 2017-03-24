@@ -176,6 +176,16 @@ std::string Db::range (int lower, int upper, Tree* btree) {
     return btree->range(lower, upper);
 }
 
+void Db::efficient_range (int lower, int upper, Tree* btree, std::map<int, long>& result) {
+    for (std::map<int, long>::iterator it = this->database.begin(); it != this->database.end(); it++) {
+        if (it->first >= lower && it->first < upper) {
+            result.insert(*it);
+        }
+    }
+    btree->efficient_range(lower, upper, result);
+    return;
+}
+
 // We delete the key in database and in btree
 // This function is DEPRECATED since deletion optimization
 void Db::delete_key (int key, Tree* btree) {

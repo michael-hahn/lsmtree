@@ -12,6 +12,7 @@
 
 #include <stdio.h>
 #include <string>
+#include <map>
 #include "Definitions.hpp"
 #include "BPlusTree.hpp"
 #include "bloom_filter.hpp"
@@ -27,6 +28,8 @@ public:
     std::string get_value_or_blank (int key);
     
     std::string range (int lower, int upper);
+    
+    void efficient_range (int lower, int upper, std::map<int, long>& result);
     
     void delete_key (int key);
     

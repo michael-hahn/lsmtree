@@ -234,6 +234,18 @@ void BPlusTree::printLeaves(bool aVerbose)
     fPrinter.printLeaves(fRoot);
 }
 
+LeafNode* BPlusTree::find_first_leaf_node(Node* aRoot) {
+    if (!aRoot) {
+        return nullptr;
+    }
+    auto node = aRoot;
+    while (!node->isLeaf()) {
+        node = static_cast<InternalNode*>(node)->firstChild();
+    }
+    auto leafNode = static_cast<LeafNode*>(node);
+    return leafNode;
+}
+
 std::pair<unsigned long, std::string> BPlusTree::print_leaves_string () {
     return fPrinter.key_value_pairs(fRoot);
 }
@@ -352,4 +364,8 @@ std::vector<BPlusTree::EntryType> BPlusTree::range(KeyType aStart, KeyType aEnd)
     }
     startLeaf->copyRangeUntil(aEnd, entries);
     return entries;
+}
+
+Node* BPlusTree::getRoot() {
+    return this->fRoot;
 }

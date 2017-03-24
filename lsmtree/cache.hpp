@@ -38,6 +38,8 @@ public:
     
     std::string range (int lower, int upper, Db* database, Tree* btree);
     
+    void efficient_range(int lower, int upper, Db* database, Tree* btree, std::map<int, long>& result);
+    
     void delete_key (int key, Db* database, Tree* btree);
     
     std::pair<std::string, int> cache_dump ();

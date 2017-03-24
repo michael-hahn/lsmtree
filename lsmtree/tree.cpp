@@ -80,6 +80,22 @@ std::string Tree::range (int lower, int upper) {
     return this->btree.getRange(lower, upper);
 }
 
+void Tree::efficient_range (int lower, int upper, std::map<int, long>& result){
+    LeafNode* node = this->btree.find_first_leaf_node(this->btree.getRoot());
+    if (!node)
+        return;
+    else {
+        while (node) {
+            for (auto it = node->get_mappings().begin(); it != node->get_mappings().end(); it++) {
+                if (it->first >= lower && it->first < upper) {
+                    result.insert(std::pair<int, long>(it->first, it->second->value()));
+                }
+            }
+            node = node->next();
+        }
+    }
+}
+
 void Tree::delete_key (int key) {
     if (in_tree(key)) {
         this->btree.remove(key);

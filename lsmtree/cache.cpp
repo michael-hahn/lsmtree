@@ -13,6 +13,7 @@
 #include <cassert>
 #include <limits>
 #include <cmath>
+#include <map>
 
 Cache::Cache(int estimate_number_insertion, double false_pos_prob){
     //std::cout << "LOGINFO:\t\t" << "Constructing cache bloom filter..." << std::endl;
@@ -123,6 +124,17 @@ std::string Cache::range (int lower, int upper, Db* database, Tree* btree) {
     this->cache_filter.clear();
     //std::cout << "LOGINFO:\t\t" << "Clear out cache bloom filter." << std::endl;
     return database->range(lower, upper, btree);
+}
+
+void Cache::efficient_range(int lower, int upper, Db* database, Tree* btree, std::map<int, long>& result) {
+    for (std::vector<std::pair<int, long>>::iterator it = this->cache.begin(); it != this->cache.end(); it++) {
+        if (it->first >= lower && it->first < upper) {
+            result.insert(*it); //only the most updated key-value pairs will be inserted
+        }
+    }
+    database->efficient_range(lower, upper, btree, result);
+    return;
+    
 }
 
 //We need to delete all instances of the key in cache and the database, and also the btree

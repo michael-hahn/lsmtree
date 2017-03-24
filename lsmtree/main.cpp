@@ -13,6 +13,7 @@
 #include <iostream>
 #include <time.h>
 #include <sys/time.h>
+#include <limits>
 #include "utils.cpp"
 #include "database.hpp"
 #include "cache.hpp"
@@ -21,6 +22,8 @@
 #define MAX_STDIN_BUFFER_SIZE 1024
 
 #define CHECKED_NEEDED 1
+
+#define EFFICIENT_RANGE 1
 
 extern int errno;
 
@@ -261,7 +264,17 @@ int main(int argc, const char * argv[]) {
                                                 //fprintf(stdout, "GET values from key range: %d - %d in the database...\n", int_from, int_to);
                                                 //TODO: get from the database here
                                                 //std::cout << "LOGINFO:\t\t" << database.range(int_from, int_to) << std::endl;
-                                                std::cout << cache.range(int_from, int_to, &database, &btree) << std::endl;
+                                                if (EFFICIENT_RANGE) {
+                                                    std::map<int, long> map_to_print;
+                                                    cache.efficient_range(int_from, int_to, &database, &btree, map_to_print);
+                                                    for (std::map<int, long>::iterator it = map_to_print.begin(); it != map_to_print.end(); it++) {
+                                                        if (it->second != LONG_MAX) {
+                                                            std::cout << it->first << ":" << it->second << " ";
+                                                        }
+                                                    }
+                                                    std::cout << std::endl;
+                                                } else
+                                                    std::cout << cache.range(int_from, int_to, &database, &btree) << std::endl;
                                             } else fprintf(stderr, "From value must be smaller than or equal to to value. Range request discarded...\n");
                                         }
                                     }
@@ -283,7 +296,17 @@ int main(int argc, const char * argv[]) {
                                         //fprintf(stdout, "GET values from key range: %d - %d in the database...\n", int_from, int_to);
                                         //TODO: get from the database here
                                         //std::cout << "LOGINFO:\t\t" << database.range(int_from, int_to) << std::endl;
-                                        std::cout << cache.range(int_from, int_to, &database, &btree) << std::endl;
+                                        if (EFFICIENT_RANGE) {
+                                            std::map<int, long> map_to_print;
+                                            cache.efficient_range(int_from, int_to, &database, &btree, map_to_print);
+                                            for (std::map<int, long>::iterator it = map_to_print.begin(); it != map_to_print.end(); it++) {
+                                                if (it->second != LONG_MAX) {
+                                                    std::cout << it->first << ":" << it->second << " ";
+                                                }
+                                            }
+                                            std::cout << std::endl;
+                                        } else
+                                            std::cout << cache.range(int_from, int_to, &database, &btree) << std::endl;
                                     } else fprintf(stderr, "From value must be smaller than or equal to to value. Range request discarded...\n");
                                 }
                             }

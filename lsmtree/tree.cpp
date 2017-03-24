@@ -86,9 +86,9 @@ void Tree::efficient_range (int lower, int upper, std::map<int, long>& result){
         return;
     else {
         while (node) {
-            for (auto it = node->get_mappings().begin(); it != node->get_mappings().end(); it++) {
-                if (it->first >= lower && it->first < upper) {
-                    result.insert(std::pair<int, long>(it->first, it->second->value()));
+            for (auto mapping : node->get_mappings()) {
+                if (mapping.first >= lower && mapping.first < upper) {
+                    result.insert(std::pair<int, long>(mapping.first, mapping.second->value()));
                 }
             }
             node = node->next();

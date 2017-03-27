@@ -178,6 +178,8 @@ std::string Db::range (int lower, int upper, Tree* btree) {
 
 void Db::efficient_range (int lower, int upper, Tree* btree, std::map<int, long>& result) {
     for (std::map<int, long>::iterator it = this->database.begin(); it != this->database.end(); it++) {
+        if (it->first >= upper)
+            break;
         if (it->first >= lower && it->first < upper) {
             result.insert(*it);
         }

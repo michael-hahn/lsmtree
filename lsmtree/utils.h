@@ -12,6 +12,9 @@
 #include <stdio.h>
 #include "cache.hpp"
 #include "database.hpp"
+#include "tree.hpp"
+#include "memmapped.hpp"
+#include "memmapped2.hpp"
 
 /**
  * trim away extra whitespace and leave only one

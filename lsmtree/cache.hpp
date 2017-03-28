@@ -16,8 +16,17 @@
 #include "database.hpp"
 #include "bloom_filter.hpp"
 #include "tree.hpp"
+#include "memmapped.hpp"
+#include "memmapped2.hpp"
+#include "memmapped3.hpp"
 
-#define MAXCACHESIZE 10
+#define MAXCACHESIZE 4
+
+struct kv_compare {
+    bool operator() (const std::pair<int, long> elt1, const std::pair<int, long> elt2) {
+        return (elt1.first < elt2.first);
+    }
+};
 
 class Cache {
 private:
@@ -32,15 +41,15 @@ public:
     
     bool in_cache (int key);
     
-    void insert (int key, long value, Db* database, Tree* btree);
+    std::vector<std::pair<int, long>> sanitize();
     
-    std::string get_value_or_blank (int key, Db* database, Tree* btree);
+    void insert (int key, long value, Memmapped* mm1, Memmapped2* mm2, Memmapped3* mm3);
     
-    std::string range (int lower, int upper, Db* database, Tree* btree);
+    std::string get_value_or_blank (int key, Memmapped* mm1, Memmapped2* mm2, Memmapped3* mm3);
     
-    void efficient_range(int lower, int upper, Db* database, Tree* btree, std::map<int, long>& result);
+    void efficient_range(int lower, int upper, Memmapped* mm1, Memmapped2* mm2, Memmapped3* mm3, std::map<int, long>& result);
     
-    void delete_key (int key, Db* database, Tree* btree);
+    void delete_key (int key, Memmapped* mm1, Memmapped2* mm2, Memmapped3* mm3);
     
     std::pair<std::string, int> cache_dump ();
     

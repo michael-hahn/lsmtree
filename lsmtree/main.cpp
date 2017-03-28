@@ -18,6 +18,9 @@
 #include "database.hpp"
 #include "cache.hpp"
 #include "tree.hpp"
+#include "memmapped.hpp"
+#include "memmapped2.hpp"
+#include "memmapped3.hpp"
 
 #define MAX_STDIN_BUFFER_SIZE 1024
 
@@ -52,12 +55,22 @@ int main(int argc, const char * argv[]) {
     //initialize database
     Db database(200, 0.001);
     
+    //initialize second level
+    Memmapped mm1("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mm1.dat", 40, 0.001);
+    
+    //initialize third level
+    Memmapped2 mm2("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mm2.dat", 100, 0.001);
+    
+    //initialize fourth level
+    Memmapped3 mm3("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mm3.dat");
+    
     //write a binary file
     //for debugging only
     //write_binary_file();
     
     //initialize B+ tree
     Tree btree(100000000, 0.01);
+    
     
     //timer
     timespec timer_start, timer_end;
@@ -137,7 +150,7 @@ int main(int argc, const char * argv[]) {
 //                                            timer_start.tv_sec = mts.tv_sec;
 //                                            timer_start.tv_nsec = mts.tv_nsec;
                                             
-                                            cache.insert(int_key, int_value, &database, &btree);
+                                            cache.insert(int_key, int_value, &mm1, &mm2, &mm3);
                                             
 //                                            clock_serv_t cclock2;
 //                                            mach_timespec_t mts2;
@@ -172,7 +185,7 @@ int main(int argc, const char * argv[]) {
                                     //fprintf(stdout, "INSERT key-value pair: %d %d to the database...\n", int_key, int_value);
                                     //TODO: insert to the database here
                                     //database.insert_or_update(int_key, int_value);
-                                    cache.insert(int_key, int_value, &database, &btree);
+                                    cache.insert(int_key, int_value, &mm1, &mm2, &mm3);
                                 }
                             }
                         }
@@ -204,7 +217,7 @@ int main(int argc, const char * argv[]) {
                                     timer_start.tv_sec = mts.tv_sec;
                                     timer_start.tv_nsec = mts.tv_nsec;
                                     
-                                    std::cout << cache.get_value_or_blank(int_key, &database, &btree) << std::endl;
+                                    std::cout << cache.get_value_or_blank(int_key, &mm1, &mm2, &mm3) << std::endl;
                                     
                                     clock_serv_t cclock2;
                                     mach_timespec_t mts2;
@@ -232,7 +245,7 @@ int main(int argc, const char * argv[]) {
                                 //fprintf(stdout, "GET value from the key: %d if key is in the database...\n", int_key);
                                 //TODO: get from the database here
                                 //std::cout << "LOGINFO:\t\t" << database.get_value_or_blank(int_key) << std::endl;
-                                std::cout << cache.get_value_or_blank(int_key, &database, &btree) << std::endl;
+                                std::cout << cache.get_value_or_blank(int_key, &mm1, &mm2, &mm3) << std::endl;
                             }
                         }
                     }
@@ -266,7 +279,7 @@ int main(int argc, const char * argv[]) {
                                                 //std::cout << "LOGINFO:\t\t" << database.range(int_from, int_to) << std::endl;
                                                 if (EFFICIENT_RANGE) {
                                                     std::map<int, long> map_to_print;
-                                                    cache.efficient_range(int_from, int_to, &database, &btree, map_to_print);
+                                                    cache.efficient_range(int_from, int_to, &mm1, &mm2, &mm3,  map_to_print);
                                                     for (std::map<int, long>::iterator it = map_to_print.begin(); it != map_to_print.end(); it++) {
                                                         if (it->second != LONG_MAX) {
                                                             std::cout << it->first << ":" << it->second << " ";
@@ -274,7 +287,7 @@ int main(int argc, const char * argv[]) {
                                                     }
                                                     std::cout << std::endl;
                                                 } else
-                                                    std::cout << cache.range(int_from, int_to, &database, &btree) << std::endl;
+                                                    ;
                                             } else fprintf(stderr, "From value must be smaller than or equal to to value. Range request discarded...\n");
                                         }
                                     }
@@ -298,7 +311,7 @@ int main(int argc, const char * argv[]) {
                                         //std::cout << "LOGINFO:\t\t" << database.range(int_from, int_to) << std::endl;
                                         if (EFFICIENT_RANGE) {
                                             std::map<int, long> map_to_print;
-                                            cache.efficient_range(int_from, int_to, &database, &btree, map_to_print);
+                                            cache.efficient_range(int_from, int_to, &mm1, &mm2, &mm3, map_to_print);
                                             for (std::map<int, long>::iterator it = map_to_print.begin(); it != map_to_print.end(); it++) {
                                                 if (it->second != LONG_MAX) {
                                                     std::cout << it->first << ":" << it->second << " ";
@@ -306,7 +319,7 @@ int main(int argc, const char * argv[]) {
                                             }
                                             std::cout << std::endl;
                                         } else
-                                            std::cout << cache.range(int_from, int_to, &database, &btree) << std::endl;
+                                            ;
                                     } else fprintf(stderr, "From value must be smaller than or equal to to value. Range request discarded...\n");
                                 }
                             }
@@ -330,7 +343,7 @@ int main(int argc, const char * argv[]) {
                                     //fprintf(stdout, "DELETE value from the key: %d if key is in the database...\n", int_key);
                                     //TODO: delete from the database here
                                     //database.delete_key(int_key);
-                                    cache.delete_key(int_key, &database, &btree);
+                                    cache.delete_key(int_key, &mm1, &mm2, &mm3);
                                 }
                             }
                         } else {
@@ -342,7 +355,7 @@ int main(int argc, const char * argv[]) {
                                 //fprintf(stdout, "DELETE value from the key: %d if key is in the database...\n", int_key);
                                 //TODO: delete from the database here
                                 //database.delete_key(int_key);
-                                cache.delete_key(int_key, &database, &btree);
+                                cache.delete_key(int_key, &mm1, &mm2, &mm3);
                             }
                         }
                     }
@@ -362,7 +375,7 @@ int main(int argc, const char * argv[]) {
                             path_str.erase(std::remove(path_str.begin(), path_str.end(), '"'), path_str.end());
                             //std::cout << "LOGINFO:\t\t" << "LOAD file from " << path_str << " to the database...\n" << std::endl;
                             //TODO: load file to the database here
-                            read_binary_file(path_str, &cache, &database, &btree);
+                            read_binary_file(path_str, &cache, &mm1, &mm2, &mm3);
                         }
                     }
                 } else if (strncmp(token, "s", 1) == 0) {

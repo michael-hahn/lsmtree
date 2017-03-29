@@ -147,15 +147,18 @@ void Cache::delete_key (int key, Memmapped* mm1, Memmapped2* mm2, Memmapped3* mm
 
 //Only shows the most updated key-value pair
 //also returns the total valid entries in the cache
-std::pair<std::string, int> Cache::cache_dump () {
+std::pair<std::string, int> Cache::cache_dump (std::set<std::pair<int, bool>, set_compare>& found_once) {
     int total_valid = 0;
     std::string rtn = "";
-    std::set<int> found_once;
     std::set<int>::iterator set_it;
-    std::pair<std::set<int>::iterator, bool> set_rtn;
+    std::pair<std::set<std::pair<int, bool>, set_compare>::iterator, bool> set_rtn;
     
     for (std::vector<std::pair<int, long>>::iterator it = this->cache.begin(); it != this->cache.end(); it++) {
-        set_rtn = found_once.insert(it->first);
+        if (it->second == LONG_MAX) {
+            set_rtn = found_once.insert(std::pair<int, bool>(it->first, false));
+        } else {
+            set_rtn = found_once.insert(std::pair<int, bool>(it->first, true));
+        }
         if (set_rtn.second == true) {
             if (it->second != LONG_MAX) {
                 std::stringstream first_ss;

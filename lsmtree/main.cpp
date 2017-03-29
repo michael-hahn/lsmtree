@@ -21,6 +21,7 @@
 #include "memmapped.hpp"
 #include "memmapped2.hpp"
 #include "memmapped3.hpp"
+#include "comp.h"
 
 #define MAX_STDIN_BUFFER_SIZE 1024
 
@@ -385,15 +386,25 @@ int main(int argc, const char * argv[]) {
                     else {
                         //fprintf(stdout, "STATUS is retrieving from the database...\n");
                         //TODO: print status here
-                        std::cout << "LOGINFO:\t\t" << "Total Pairs: " << "*TODO*" << std::endl;
-                        std::cout << "LOGINFO:\t\t" << "LVL1: "<< cache.cache_dump().second << std::endl;
-                        std::cout << "LOGINFO:\t\t" << cache.cache_dump().first << std::endl;
-                        std::cout << "LOGINFO:\t\t" << "LVL2: "<< mm1.mm1_dump().second << std::endl;
-                        std::cout << "LOGINFO:\t\t" << mm1.mm1_dump().first << std::endl;
-                        std::cout << "LOGINFO:\t\t" << "LVL3: "<< mm2.mm2_dump().second << std::endl;
-                        std::cout << "LOGINFO:\t\t" << mm2.mm2_dump().first << std::endl;
-                        std::cout << "LOGINFO:\t\t" << "LVL4: "<< mm3.mm3_dump().second << std::endl;
-                        std::cout << "LOGINFO:\t\t" << mm3.mm3_dump().first << std::endl;
+                        std::set<std::pair<int, bool>, set_compare> total_pairs;
+                        std::pair<std::string, int> cache_result = cache.cache_dump(total_pairs);
+                        std::pair<std::string, int> mm1_result = mm1.mm1_dump(total_pairs);
+                        std::pair<std::string, int> mm2_result = mm2.mm2_dump(total_pairs);
+                        std::pair<std::string, int> mm3_result = mm3.mm3_dump(total_pairs);
+                        int unique_count = 0;
+                        for (std::set<std::pair<int, bool>, set_compare>::iterator it = total_pairs.begin(); it != total_pairs.end(); it++) {
+                            if (it->second)
+                                unique_count++;
+                        }
+                        std::cout << "LOGINFO:\t\t" << "Total Pairs: " << unique_count << std::endl;
+                        std::cout << "LOGINFO:\t\t" << "LVL1: "<< cache_result.second << std::endl;
+                        std::cout << "LOGINFO:\t\t" << cache_result.first << std::endl;
+                        std::cout << "LOGINFO:\t\t" << "LVL2: "<< mm1_result.second << std::endl;
+                        std::cout << "LOGINFO:\t\t" << mm1_result.first << std::endl;
+                        std::cout << "LOGINFO:\t\t" << "LVL3: "<< mm2_result.second << std::endl;
+                        std::cout << "LOGINFO:\t\t" << mm2_result.first << std::endl;
+                        std::cout << "LOGINFO:\t\t" << "LVL4: "<< mm3_result.second << std::endl;
+                        std::cout << "LOGINFO:\t\t" << mm3_result.first << std::endl;
                     }
                 } else if (strncmp(token, "q", 1) == 0) {
                     break;

@@ -214,11 +214,10 @@ void Memmapped3::efficient_range(int lower, int upper, std::map<int, long>& resu
     return;
 }
 
-std::pair<std::string, int> Memmapped3::mm3_dump () {
+std::pair<std::string, int> Memmapped3::mm3_dump (std::set<std::pair<int, bool>, set_compare>& found_once) {
     int total_valid = 0;
     std::string rtn = "";
-    std::set<int> found_once;
-    std::pair<std::set<int>::iterator, bool> set_rtn;
+    std::pair<std::set<std::pair<int, bool>, set_compare>::iterator, bool> set_rtn;
     
     for (int i = this->cur_array_num - 1; i >= 0; i--) {
         std::pair<int, long>* map = (std::pair<int, long>*) mmap(0, sysconf(_SC_PAGE_SIZE), PROT_READ, MAP_SHARED, this->fd, sysconf(_SC_PAGE_SIZE) * i);
@@ -228,7 +227,11 @@ std::pair<std::string, int> Memmapped3::mm3_dump () {
             exit(EXIT_FAILURE);
         }
         for (int j = 0; j < this->elt_size[i]; j++) {
-            set_rtn = found_once.insert(map[j].first);
+            if (map[j].second == LONG_MAX) {
+                set_rtn = found_once.insert(std::pair<int, bool>(map[j].first, false));
+            } else {
+                set_rtn = found_once.insert(std::pair<int, bool>(map[j].first, true));
+            }
             if (set_rtn.second) {
                 if (map[j].second != LONG_MAX) {
                     std::stringstream first_ss;

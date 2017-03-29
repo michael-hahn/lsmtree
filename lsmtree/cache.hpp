@@ -19,6 +19,7 @@
 #include "memmapped.hpp"
 #include "memmapped2.hpp"
 #include "memmapped3.hpp"
+#include "comp.h"
 
 #define MAXCACHESIZE 4
 
@@ -51,7 +52,7 @@ public:
     
     void delete_key (int key, Memmapped* mm1, Memmapped2* mm2, Memmapped3* mm3);
     
-    std::pair<std::string, int> cache_dump ();
+    std::pair<std::string, int> cache_dump (std::set<std::pair<int, bool>, set_compare>& found_once);
     
     std::pair<std::set<int>, std::set<int>> all_keys ();
     

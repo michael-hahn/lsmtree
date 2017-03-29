@@ -14,6 +14,7 @@
 #include <vector>
 #include <map>
 #include "bloom_filter.hpp"
+#include "comp.h"
 
 #define ESTIMATE_NUMBER_INSERTION 200
 #define FALSE_POS_PROB 0.001
@@ -49,7 +50,7 @@ public:
     
     void efficient_range(int lower, int upper, std::map<int, long>& result);
     
-    std::pair<std::string, int> mm3_dump ();
+    std::pair<std::string, int> mm3_dump (std::set<std::pair<int, bool>, set_compare>& found_once);
 };
 
 #include "memmapped3.cpp"

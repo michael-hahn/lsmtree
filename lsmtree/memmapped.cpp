@@ -197,16 +197,19 @@ void Memmapped::efficient_range(int lower, int upper, Memmapped2* mm2, Memmapped
     return;
 }
 
-std::pair<std::string, int> Memmapped::mm1_dump () {
+std::pair<std::string, int> Memmapped::mm1_dump (std::set<std::pair<int, bool>, set_compare>& found_once) {
     int total_valid = 0;
     std::string rtn = "";
-    std::set<int> found_once;
-    std::pair<std::set<int>::iterator, bool> set_rtn;
+    std::pair<std::set<std::pair<int, bool>, set_compare>::iterator, bool> set_rtn;
     
     for (int i = this->cur_array_num - 1; i >= 0; i--) {
         std::pair<int, long>* map = this->mapped_addr[i];
         for (int j = 0; j < this->elt_size[i]; j++) {
-            set_rtn = found_once.insert(map[j].first);
+            if (map[j].second == LONG_MAX) {
+                set_rtn = found_once.insert(std::pair<int, bool>(map[j].first, false));
+            } else {
+                set_rtn = found_once.insert(std::pair<int, bool>(map[j].first, true));
+            }
             if (set_rtn.second) {
                 if (map[j].second != LONG_MAX) {
                     std::stringstream first_ss;

@@ -15,6 +15,7 @@
 #include <map>
 #include "bloom_filter.hpp"
 #include "memmapped3.hpp"
+#include "comp.h"
 
 #define ARRAY_NUM_2 4
 #define FILESIZE_2 (sysconf(_SC_PAGE_SIZE) * ARRAY_NUM_2)
@@ -53,7 +54,7 @@ public:
     
     void efficient_range(int lower, int upper, Memmapped3* mm3, std::map<int, long>& result);
     
-    std::pair<std::string, int> mm2_dump ();
+    std::pair<std::string, int> mm2_dump (std::set<std::pair<int, bool>, set_compare>& found_once);
 };
 
 

@@ -48,6 +48,8 @@ public:
     std::string get_value_or_blank(int key);
     
     void efficient_range(int lower, int upper, std::map<int, long>& result);
+    
+    std::pair<std::string, int> mm3_dump ();
 };
 
 #include "memmapped3.cpp"

@@ -30,6 +30,8 @@ private:
     
     int cur_array_num;
     
+    std::pair<int, long>* mapped_addr[ARRAY_NUM];
+    
     //a bloom filter for each page
     bloom_filter mm1_filter[ARRAY_NUM];
     
@@ -40,6 +42,8 @@ public:
     
     bool in_mm1 (int key, int num);
     
+    void free_mem();
+    
     std::map<int, long> consolidate();
     
     void insert(std::vector<std::pair<int, long>> cache, Memmapped2* mm2, Memmapped3* mm3);
@@ -47,6 +51,8 @@ public:
     std::string get_value_or_blank(int key, Memmapped2* mm2, Memmapped3* mm3);
     
     void efficient_range(int lower, int upper, Memmapped2* mm2, Memmapped3* mm, std::map<int, long>& result);
+    
+    std::pair<std::string, int> mm1_dump ();
 };
 
 

@@ -213,3 +213,38 @@ void Memmapped3::efficient_range(int lower, int upper, std::map<int, long>& resu
     }
     return;
 }
+
+std::pair<std::string, int> Memmapped3::mm3_dump () {
+    int total_valid = 0;
+    std::string rtn = "";
+    std::set<int> found_once;
+    std::pair<std::set<int>::iterator, bool> set_rtn;
+    
+    for (int i = this->cur_array_num - 1; i >= 0; i--) {
+        std::pair<int, long>* map = (std::pair<int, long>*) mmap(0, sysconf(_SC_PAGE_SIZE), PROT_READ, MAP_SHARED, this->fd, sysconf(_SC_PAGE_SIZE) * i);
+        if (map == MAP_FAILED) {
+            close(this->fd);
+            perror("Error mmapping the file for insertion");
+            exit(EXIT_FAILURE);
+        }
+        for (int j = 0; j < this->elt_size[i]; j++) {
+            set_rtn = found_once.insert(map[j].first);
+            if (set_rtn.second) {
+                if (map[j].second != LONG_MAX) {
+                    std::stringstream first_ss;
+                    first_ss << map[j].first;
+                    std::stringstream second_ss;
+                    second_ss << map[j].second;
+                    rtn += first_ss.str() + ":" + second_ss.str() + ":" + "L1" + " ";
+                    total_valid++;
+                }
+            }
+        }
+        if (munmap(map, sysconf(_SC_PAGE_SIZE)) == -1) {
+            perror("Error unmapping the file");
+            close(this->fd);
+            exit(EXIT_FAILURE);
+        }
+    }
+    return std::pair<std::string, int> (rtn, total_valid);
+}

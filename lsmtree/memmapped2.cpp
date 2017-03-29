@@ -44,6 +44,17 @@ Memmapped2::Memmapped2(std::string file_path, int estimate_number_insertion, dou
         perror("Error writing last byte of the file");
         exit(EXIT_FAILURE);
     }
+    
+    //memory map each page
+    for (int i = 0; i < ARRAY_NUM_2; i++) {
+        std::pair<int, long>* map = (std::pair<int, long>*) mmap(0, sysconf(_SC_PAGE_SIZE), PROT_READ | PROT_WRITE, MAP_SHARED, this->fd, sysconf(_SC_PAGE_SIZE) * i);
+        if (map == MAP_FAILED) {
+            close(this->fd);
+            perror("Error mapping the file for consolidation");
+            exit(EXIT_FAILURE);
+        }
+        this->mapped_addr[i] = map;
+    }
 }
 
 void Memmapped2::construct_mm2_filter (int estimate_number_insertion, double false_pos_prob) {
@@ -78,25 +89,27 @@ bool Memmapped2::in_mm2 (int key, int num) {
     }
 }
 
+void Memmapped2::free_mem() {
+    for (int i = 0; i < ARRAY_NUM_2; i++) {
+        if (munmap(this->mapped_addr[i], sysconf(_SC_PAGE_SIZE)) == -1) {
+            perror("Error unmapping the file");
+            close(this->fd);
+            exit(EXIT_FAILURE);
+        }
+    }
+    close(this->fd);
+    return;
+}
+
 //same functionality as sanitize function in first-level
 //consolidate all pages, only keep the most updated value of each key
 //including deletion keys
 std::map<int, long> Memmapped2::consolidate(){
     std::map<int, long> rtn;
     for (int i = ARRAY_NUM_2 - 1; i >= 0; i--) {
-        std::pair<int, long>* map = (std::pair<int, long>*) mmap(0, sysconf(_SC_PAGE_SIZE), PROT_READ | PROT_WRITE, MAP_SHARED, this->fd, sysconf(_SC_PAGE_SIZE) * i);
-        if (map == MAP_FAILED) {
-            close(this->fd);
-            perror("Error mapping the file for consolidation");
-            exit(EXIT_FAILURE);
-        }
+        std::pair<int, long>* map = this->mapped_addr[i];
         for (int j = 0; j < this->elt_size[i]; j++) {
             rtn.insert(map[j]);
-        }
-        if (munmap(map, sysconf(_SC_PAGE_SIZE)) == -1) {
-            perror("Error unmapping the file");
-            close(this->fd);
-            exit(EXIT_FAILURE);
         }
     }
     return rtn;
@@ -112,12 +125,7 @@ void Memmapped2::insert(std::map<int, long> pairs, Memmapped3* mm3) {
         std::map<int, long> consolidated = this->consolidate();
         mm3->insert(consolidated);
     }
-    std::pair<int, long>* map = (std::pair<int, long>*) mmap(0, sysconf(_SC_PAGE_SIZE), PROT_READ | PROT_WRITE, MAP_SHARED, this->fd, sysconf(_SC_PAGE_SIZE) * this->cur_array_num);
-    if (map == MAP_FAILED) {
-        close(this->fd);
-        perror("Error mmapping the file for insertion");
-        exit(EXIT_FAILURE);
-    }
+    std::pair<int, long>* map = this->mapped_addr[this->cur_array_num];
     
     std::map<int, long>::iterator it = pairs.begin();
     for (int i = 0; i < pairs.size(); i++) {
@@ -126,12 +134,6 @@ void Memmapped2::insert(std::map<int, long> pairs, Memmapped3* mm3) {
             this->mm2_filter[this->cur_array_num].insert(it->first);
         }
         it++;
-    }
-    //unmap to free memory
-    if (munmap(map, sysconf(_SC_PAGE_SIZE)) == -1) {
-        perror("Error unmapping the file");
-        close(this->fd);
-        exit(EXIT_FAILURE);
     }
     
     this->fenses[cur_array_num] = std::pair<int, int>(pairs.begin()->first, pairs.rbegin()->first);
@@ -147,12 +149,7 @@ std::string Memmapped2::get_value_or_blank(int key, Memmapped3* mm3) {
     for (int i = this->cur_array_num - 1; i >= 0; i--) {
         if (key >= this->fenses[i].first && key <= this->fenses[i].second) {
             if (in_mm2(key, i)) {
-                std::pair<int, long>* map = (std::pair<int, long>*) mmap(0, sysconf(_SC_PAGE_SIZE), PROT_READ, MAP_SHARED, this->fd, sysconf(_SC_PAGE_SIZE) * i);
-                if (map == MAP_FAILED) {
-                    close(this->fd);
-                    perror("Error mmapping the file for insertion");
-                    exit(EXIT_FAILURE);
-                }
+                std::pair<int, long>* map = this->mapped_addr[i];
                 size_t left = 0;
                 size_t right = this->elt_size[i] - 1;
                 size_t mid;
@@ -160,11 +157,6 @@ std::string Memmapped2::get_value_or_blank(int key, Memmapped3* mm3) {
                     mid = (left + right) / 2;
                     if (map[mid].first == key) {
                         if (map[mid].second == LONG_MAX) {
-                            if (munmap(map, sysconf(_SC_PAGE_SIZE)) == -1) {
-                                perror("Error unmapping the file");
-                                close(this->fd);
-                                exit(EXIT_FAILURE);
-                            }
                             return "";
                         } else {
                             std::stringstream out;
@@ -177,11 +169,6 @@ std::string Memmapped2::get_value_or_blank(int key, Memmapped3* mm3) {
                     } else {
                         right = mid - 1;
                     }
-                }
-                if (munmap(map, sysconf(_SC_PAGE_SIZE)) == -1) {
-                    perror("Error unmapping the file");
-                    close(this->fd);
-                    exit(EXIT_FAILURE);
                 }
                 if (rtn != "")
                     break;
@@ -198,24 +185,40 @@ void Memmapped2::efficient_range(int lower, int upper, Memmapped3* mm3, std::map
         if (lower > this->fenses[i].second || upper <= this->fenses[i].first)
             ;
         else {
-            std::pair<int, long>* map = (std::pair<int, long>*) mmap(0, sysconf(_SC_PAGE_SIZE), PROT_READ, MAP_SHARED, this->fd, sysconf(_SC_PAGE_SIZE) * i);
-            if (map == MAP_FAILED) {
-                close(this->fd);
-                perror("Error mmapping the file for insertion");
-                exit(EXIT_FAILURE);
-            }
+            std::pair<int, long>* map = this->mapped_addr[i];
             for (int j = 0; j < this->elt_size[i]; j++) {
                 if (map[j].first >= lower && map[j].first < upper) {
                     result.insert(map[j]);
                 }
             }
-            if (munmap(map, sysconf(_SC_PAGE_SIZE)) == -1) {
-                perror("Error unmapping the file");
-                close(this->fd);
-                exit(EXIT_FAILURE);
-            }
         }
     }
     mm3->efficient_range(lower, upper, result);
     return;
+}
+
+std::pair<std::string, int> Memmapped2::mm2_dump () {
+    int total_valid = 0;
+    std::string rtn = "";
+    std::set<int> found_once;
+    std::pair<std::set<int>::iterator, bool> set_rtn;
+    
+    for (int i = this->cur_array_num - 1; i >= 0; i--) {
+        std::pair<int, long>* map = this->mapped_addr[i];
+        for (int j = 0; j < this->elt_size[i]; j++) {
+            set_rtn = found_once.insert(map[j].first);
+            if (set_rtn.second) {
+                if (map[j].second != LONG_MAX) {
+                    std::stringstream first_ss;
+                    first_ss << map[j].first;
+                    std::stringstream second_ss;
+                    second_ss << map[j].second;
+                    rtn += first_ss.str() + ":" + second_ss.str() + ":" + "L1" + " ";
+                    total_valid++;
+                }
+            }
+        }
+    }
+    return std::pair<std::string, int> (rtn, total_valid);
+
 }

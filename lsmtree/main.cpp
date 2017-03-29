@@ -385,13 +385,15 @@ int main(int argc, const char * argv[]) {
                     else {
                         //fprintf(stdout, "STATUS is retrieving from the database...\n");
                         //TODO: print status here
-                        std::cout << "LOGINFO:\t\t" << "Total Pairs: " << total_size(&cache, &database, &btree) << std::endl;
+                        std::cout << "LOGINFO:\t\t" << "Total Pairs: " << "*TODO*" << std::endl;
                         std::cout << "LOGINFO:\t\t" << "LVL1: "<< cache.cache_dump().second << std::endl;
                         std::cout << "LOGINFO:\t\t" << cache.cache_dump().first << std::endl;
-                        std::cout << "LOGINFO:\t\t" << "LVL2: "<< database.db_dump().second << std::endl;
-                        std::cout << "LOGINFO:\t\t" << database.db_dump().first << std::endl;
-                        std::cout << "LOGINFO:\t\t" << "LVL3: "<< btree.tree_dump().first << std::endl;
-                        std::cout << "LOGINFO:\t\t" << btree.tree_dump().second << std::endl;
+                        std::cout << "LOGINFO:\t\t" << "LVL2: "<< mm1.mm1_dump().second << std::endl;
+                        std::cout << "LOGINFO:\t\t" << mm1.mm1_dump().first << std::endl;
+                        std::cout << "LOGINFO:\t\t" << "LVL3: "<< mm2.mm2_dump().second << std::endl;
+                        std::cout << "LOGINFO:\t\t" << mm2.mm2_dump().first << std::endl;
+                        std::cout << "LOGINFO:\t\t" << "LVL4: "<< mm3.mm3_dump().second << std::endl;
+                        std::cout << "LOGINFO:\t\t" << mm3.mm3_dump().first << std::endl;
                     }
                 } else if (strncmp(token, "q", 1) == 0) {
                     break;
@@ -406,6 +408,9 @@ int main(int argc, const char * argv[]) {
     
     std::cout << "Maximum get time (nanoseconds): " << max_get_nano_time << std::endl;
     std::cout << "Average get time (nanoseconds): " << average_get_nano_time << std::endl;
+    
+    mm1.free_mem();
+    mm2.free_mem();
     
     return 0;
 }

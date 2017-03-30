@@ -22,18 +22,19 @@
 #include "Definitions.hpp"
 #include "Record.hpp"
 
-Record::Record(ValueType aValue)
-: fValue(aValue)
+Record::Record(std::pair<int, int> addr)
+: addr(addr)
 {}
 
-ValueType Record::value() const
+std::pair<int, int> Record::value() const
 {
-    return fValue;
+    return this->addr;
 }
 
 std::string Record::toString() const
 {
-    std::ostringstream oss;
-    oss << fValue;
-    return oss.str();
+//    std::ostringstream oss;
+//    oss << fValue;
+//    return oss.str();
+    return "THIS FUNCTION SHOULD NEVER BE CALLED!";
 }

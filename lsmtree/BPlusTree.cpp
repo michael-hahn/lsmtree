@@ -28,7 +28,11 @@
 #include "LeafNode.hpp"
 #include "Node.hpp"
 
-BPlusTree::BPlusTree(int aOrder) : fOrder{aOrder}, fRoot{nullptr} {}
+BPlusTree::BPlusTree(int fd, int aOrder) : fOrder{aOrder}, fRoot{nullptr} {
+    this->fd = fd;
+    this->cur_page_num = 0;
+    this->cur_elmt_num = 0;
+}
 
 bool BPlusTree::isEmpty() const
 {
@@ -39,8 +43,6 @@ bool BPlusTree::isEmpty() const
 
 void BPlusTree::insert(KeyType aKey, ValueType aValue)
 {
-    std::stringstream value_ss;
-    value_ss << aValue;
     if (isEmpty()) {
         startNewTree(aKey, aValue);
     } else {
@@ -49,8 +51,10 @@ void BPlusTree::insert(KeyType aKey, ValueType aValue)
 }
 
 void BPlusTree::startNewTree(KeyType aKey, ValueType aValue) {
+    this->cur_page_num = 1;
+    this->cur_elmt_num = 1;
     LeafNode* newLeafNode = new LeafNode(fOrder);
-    newLeafNode->createAndInsertRecord(aKey, aValue);
+    newLeafNode->createAndInsertRecord(aKey, aValue, this->fd, this->cur_page_num, this->cur_elmt_num);
     fRoot = newLeafNode;
 }
 
@@ -60,7 +64,19 @@ void BPlusTree::insertIntoLeaf(KeyType aKey, ValueType aValue)
     if (!leafNode) {
         throw LeafNotFoundException(aKey);
     }
-    int newSize = leafNode->createAndInsertRecord(aKey, aValue);
+    this->cur_elmt_num += 1;
+    if (this->cur_elmt_num > MAX_ELEM_NUM) {
+        this->cur_page_num += 1;
+        if (this->cur_page_num > INIT_PAGE_NUM) {
+            if (ftruncate(this->fd, sysconf(_SC_PAGE_SIZE) * this->cur_page_num) == -1) {
+                perror("Error expanding the file");
+                close(this->fd);
+                exit(EXIT_FAILURE);
+            }
+        }
+        this->cur_elmt_num = 1;
+    }
+    int newSize = leafNode->createAndInsertRecord(aKey, aValue, this->fd, this->cur_page_num, this->cur_elmt_num);
     if (newSize > leafNode->maxSize()) {
         LeafNode* newLeaf = split(leafNode);
         newLeaf->setNext(leafNode->next());
@@ -246,8 +262,8 @@ LeafNode* BPlusTree::find_first_leaf_node(Node* aRoot) {
     return leafNode;
 }
 
-std::pair<unsigned long, std::string> BPlusTree::print_leaves_string () {
-    return fPrinter.key_value_pairs(fRoot);
+std::pair<unsigned long, std::string> BPlusTree::print_leaves_string (int fd) {
+    return fPrinter.key_value_pairs(fRoot, fd);
 }
 
 void BPlusTree::destroyTree()
@@ -300,7 +316,20 @@ std::string BPlusTree::getValue(KeyType aKey) {
         //std::cout << "LOGINFO:\t\t" << "Record not found with key " << aKey << "." << std::endl;
         return rtn;
     }
-    ValueType value = record->value();
+    //ValueType value = record->value();
+    std::pair<int, int> addr = record->value();
+    long* map = (long*) mmap(0, sysconf(_SC_PAGE_SIZE), PROT_READ | PROT_WRITE, MAP_SHARED, this->fd, sysconf(_SC_PAGE_SIZE) * (addr.first - 1));
+    if (map == MAP_FAILED) {
+        close(this->fd);
+        perror("Error mmapping the file for insertion");
+        exit(EXIT_FAILURE);
+    }
+    long value = map[addr.second - 1];
+    if (munmap(map, sysconf(_SC_PAGE_SIZE)) == -1) {
+        perror("Error unmapping the file");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
     std::stringstream out;
     out << value;
     rtn = out.str();
@@ -314,12 +343,13 @@ void BPlusTree::printPathTo(KeyType aKey, bool aVerbose)
 
 void BPlusTree::printRange(KeyType aStart, KeyType aEnd)
 {
-    auto rangeVector = range(aStart, aEnd);
-    for (auto entry : rangeVector) {
-        std::cout << "Key: " << std::get<0>(entry);
-        std::cout << "    Value: " << std::get<1>(entry);
-        std::cout << "    Leaf: " << std::hex << std::get<2>(entry) << std::dec << std::endl;
-    }
+    std::cout << "THIS FUNCTION SHOULD NEVER BE CALLED!" << std::endl;
+//    auto rangeVector = range(aStart, aEnd);
+//    for (auto entry : rangeVector) {
+//        std::cout << "Key: " << std::get<0>(entry);
+//        std::cout << "    Value: " << std::get<1>(entry);
+//        std::cout << "    Leaf: " << std::hex << std::get<2>(entry) << std::dec << std::endl;
+//    }
 }
 
 std::string BPlusTree::getRange(KeyType aStart, KeyType aEnd) {
@@ -329,7 +359,20 @@ std::string BPlusTree::getRange(KeyType aStart, KeyType aEnd) {
         std::stringstream key_ss;
         key_ss << std::get<0>(entry);
         std::stringstream value_ss;
-        value_ss << std::get<1>(entry);
+        std::pair<int, int> addr = std::get<1>(entry);
+        long* map = (long*) mmap(0, sysconf(_SC_PAGE_SIZE), PROT_READ | PROT_WRITE, MAP_SHARED, this->fd, sysconf(_SC_PAGE_SIZE) * (addr.first - 1));
+        if (map == MAP_FAILED) {
+            close(this->fd);
+            perror("Error mmapping the file for insertion");
+            exit(EXIT_FAILURE);
+        }
+        long value = map[addr.second - 1];
+        if (munmap(map, sysconf(_SC_PAGE_SIZE)) == -1) {
+            perror("Error unmapping the file");
+            close(this->fd);
+            exit(EXIT_FAILURE);
+        }
+        value_ss << value;
         rtn += key_ss.str() +  ":" + value_ss.str() + " ";
     }
     return rtn;
@@ -339,7 +382,7 @@ std::vector<BPlusTree::EntryType> BPlusTree::range(KeyType aStart, KeyType aEnd)
 {
     auto startLeaf = findLeafNode(aStart);
     auto endLeaf = findLeafNode(aEnd);
-    std::vector<std::tuple<KeyType, ValueType, LeafNode*>> entries;
+    std::vector<std::tuple<KeyType, std::pair<int, int>, LeafNode*>> entries;
     if (startLeaf == endLeaf) {
         if (aEnd <= startLeaf->smallest())
             return entries;

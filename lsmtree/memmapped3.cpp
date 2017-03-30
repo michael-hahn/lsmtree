@@ -82,6 +82,11 @@ bool Memmapped3::in_mm3 (int key, int num) {
     }
 }
 
+void Memmapped3::free_mem() {
+    close(this->fd);
+    return;
+}
+
 void Memmapped3::insert(std::map<int, long> pairs) {
     //when a new page of a file is needed
     if (this->cur_array_num >= this->page_num) {

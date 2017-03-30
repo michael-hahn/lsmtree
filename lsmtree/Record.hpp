@@ -26,12 +26,12 @@
 class Record
 {
 public:
-    explicit Record(ValueType aValue);
-    ValueType value() const;
+    explicit Record(std::pair<int, int> addr);
+    std::pair<int, int> value() const;
     std::string toString() const;
 private:
-    Record() : fValue(0) {}
-    ValueType fValue;
+    Record() {}
+    std::pair<int, int> addr;
 };
 
 #include "Record.cpp"

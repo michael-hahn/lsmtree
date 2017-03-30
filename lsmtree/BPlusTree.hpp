@@ -24,6 +24,13 @@
 #include <tuple>
 #include <vector>
 #include <string>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include "Definitions.hpp"
 #include "Printer.hpp"
 
@@ -39,12 +46,12 @@ public:
     /// Sole constructor.  Accepts an optional order for the B+ Tree.
     /// The default order will provide a reasonable demonstration of the
     /// data structure and its operations.
-    explicit BPlusTree(int aOrder = DEFAULT_ORDER);
+    explicit BPlusTree(int fd, int aOrder = DEFAULT_ORDER);
     
     /// The type used in the API for inserting a new key-value pair
     /// into the tree.  The third item is the type of the Node into
     /// which the key will be inserted.
-    using EntryType = std::tuple<KeyType, ValueType, LeafNode*>;
+    using EntryType = std::tuple<KeyType, std::pair<int, int>, LeafNode*>;
     
     /// Returns true if this B+ tree has no keys or values.
     bool isEmpty() const;
@@ -69,7 +76,7 @@ public:
     
     /// Same as printLeaves function
     /// Except it retruns a string instead of I/O
-    std::pair<unsigned long, std::string> print_leaves_string ();
+    std::pair<unsigned long, std::string> print_leaves_string (int fd);
     
     /// Print the value associated with a given key, along with the address
     /// at which the tree stores that value.
@@ -119,6 +126,9 @@ private:
     const int fOrder;
     Node* fRoot;
     Printer fPrinter;
+    int fd;
+    int cur_page_num;
+    int cur_elmt_num;
 };
 
 #include "BPlusTree.cpp"

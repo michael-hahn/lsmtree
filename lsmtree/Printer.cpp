@@ -100,7 +100,7 @@ void Printer::printLeaves(Node *aRoot)
     std::cout << " |" << std::endl;
 }
 
-std::pair<unsigned long, std::string> Printer::key_value_pairs(Node *aRoot) {
+std::pair<unsigned long, std::string> Printer::key_value_pairs(Node *aRoot, int fd) {
     std::string rtn = "";
     unsigned long counter = 0;
     if (!aRoot) {
@@ -113,8 +113,8 @@ std::pair<unsigned long, std::string> Printer::key_value_pairs(Node *aRoot) {
     }
     auto leafNode = static_cast<LeafNode*>(node);
     while (leafNode) {
-        counter += leafNode->key_value_pairs().first;
-        rtn += leafNode->key_value_pairs().second;
+        counter += leafNode->key_value_pairs(fd).first;
+        rtn += leafNode->key_value_pairs(fd).second;
         leafNode = leafNode->next();
     }
     std::pair<unsigned long, std::string> pair(counter, rtn);

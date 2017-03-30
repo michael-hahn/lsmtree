@@ -24,6 +24,9 @@
 #include <cstdlib>
 
 #define VERSION "2.0.2"
+#define VERSION "2.0.2"
+#define MAX_ELEM_NUM 10
+#define INIT_PAGE_NUM 2
 
 const int DEFAULT_ORDER{10};
 

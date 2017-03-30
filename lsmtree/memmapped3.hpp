@@ -44,6 +44,8 @@ public:
     
     bool in_mm3 (int key, int num);
     
+    void free_mem();
+    
     void insert(std::map<int, long> pairs);
     
     std::string get_value_or_blank(int key);

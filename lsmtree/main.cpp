@@ -70,7 +70,8 @@ int main(int argc, const char * argv[]) {
     //write_binary_file();
     
     //initialize B+ tree
-    Tree btree(100000000, 0.01);
+    Tree btree("/Users/Michael/Documents/Harvard/g1/cs265/xcode/test.dat", 100000000, 0.01);
+    
     
     
     //timer
@@ -151,7 +152,7 @@ int main(int argc, const char * argv[]) {
 //                                            timer_start.tv_sec = mts.tv_sec;
 //                                            timer_start.tv_nsec = mts.tv_nsec;
                                             
-                                            cache.insert(int_key, int_value, &mm1, &mm2, &mm3);
+                                              cache.insert(int_key, int_value, &mm1, &mm2, &mm3);
                                             
 //                                            clock_serv_t cclock2;
 //                                            mach_timespec_t mts2;
@@ -422,6 +423,8 @@ int main(int argc, const char * argv[]) {
     
     mm1.free_mem();
     mm2.free_mem();
+    mm3.free_mem();
+    btree.free_mem();
     
     return 0;
 }

@@ -84,14 +84,27 @@ std::string LeafNode::toString(bool aVerbose) const
     return keyToTextConverter.str();
 }
 
-std::pair<unsigned long, std::string> LeafNode::key_value_pairs() const {
+std::pair<unsigned long, std::string> LeafNode::key_value_pairs(int fd) const {
     std::string rtn = "";
     unsigned long count = 0;
     for (auto mapping : fMappings) {
+        std::pair<int, int> addr = mapping.second->value();
+        long* map = (long*) mmap(0, sysconf(_SC_PAGE_SIZE), PROT_READ | PROT_WRITE, MAP_SHARED, fd, sysconf(_SC_PAGE_SIZE) * (addr.first - 1));
+        if (map == MAP_FAILED) {
+            close(fd);
+            perror("Error mmapping the file for insertion");
+            exit(EXIT_FAILURE);
+        }
+        long value = map[addr.second - 1];
+        if (munmap(map, sysconf(_SC_PAGE_SIZE)) == -1) {
+            perror("Error unmapping the file");
+            close(fd);
+            exit(EXIT_FAILURE);
+        }
         std::stringstream keyToTextConverter;
         std::stringstream valueToTextConverter;
         keyToTextConverter << mapping.first;
-        valueToTextConverter << mapping.second->value();
+        valueToTextConverter << value;
         rtn += keyToTextConverter.str() + ":" + valueToTextConverter.str() + " ";
         count++;
     }
@@ -103,11 +116,23 @@ std::vector<std::pair<KeyType, Record*>> LeafNode::get_mappings() {
     return fMappings;
 }
 
-int LeafNode::createAndInsertRecord(KeyType aKey, ValueType aValue)
+int LeafNode::createAndInsertRecord(KeyType aKey, ValueType aValue, int fd, int page_num, int elmt_num)
 {
     Record* existingRecord = lookup(aKey);
     if (!existingRecord) {
-        Record* newRecord = new Record(aValue);
+        Record* newRecord = new Record(std::pair<int, int>(page_num, elmt_num));
+        long* map = (long*) mmap(0, sysconf(_SC_PAGE_SIZE), PROT_READ | PROT_WRITE, MAP_SHARED, fd, sysconf(_SC_PAGE_SIZE) * (page_num - 1));
+        if (map == MAP_FAILED) {
+            close(fd);
+            perror("Error mmapping the file for insertion");
+            exit(EXIT_FAILURE);
+        }
+        map[elmt_num - 1] = aValue;
+        if (munmap(map, sysconf(_SC_PAGE_SIZE)) == -1) {
+            perror("Error unmapping the file");
+            close(fd);
+            exit(EXIT_FAILURE);
+        }
         insert(aKey, newRecord);
     }
     return static_cast<int>(fMappings.size());
@@ -195,7 +220,8 @@ int LeafNode::removeAndDeleteRecord(KeyType aKey)
         ++removalPoint;
     }
     if (removalPoint == end) {
-        throw RecordNotFoundException(aKey);
+        //throw RecordNotFoundException(aKey);
+        return static_cast<int>(fMappings.size());
     }
     auto record = *removalPoint;
     fMappings.erase(removalPoint);

@@ -33,7 +33,7 @@ public:
     void setVerbose(bool aVerbose);
     void printTree(Node* aRoot) const;
     void printLeaves(Node* aRoot);
-    std::pair<unsigned long, std::string> key_value_pairs(Node *aRoot);
+    std::pair<unsigned long, std::string> key_value_pairs(Node *aRoot, int fd);
 private:
     void printEmptyTree() const;
     void printNonEmptyTree(Node* aRoot) const;

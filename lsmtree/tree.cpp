@@ -145,6 +145,6 @@ void Tree::delete_key (int key) {
 }
 
 //TODO: Dump Tree from Disk
-std::pair<unsigned long, std::string> Tree::tree_dump () {
-    return this->btree->print_leaves_string(this->fd);
+std::pair<unsigned long, std::string> Tree::tree_dump (std::set<std::pair<int, bool>, set_compare>& found_once) {
+    return this->btree->print_leaves_string(this->fd, found_once);
 }

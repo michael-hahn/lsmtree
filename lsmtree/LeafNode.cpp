@@ -84,29 +84,34 @@ std::string LeafNode::toString(bool aVerbose) const
     return keyToTextConverter.str();
 }
 
-std::pair<unsigned long, std::string> LeafNode::key_value_pairs(int fd) const {
+std::pair<unsigned long, std::string> LeafNode::key_value_pairs(int fd, std::set<std::pair<int, bool>, set_compare>& found_once) const {
     std::string rtn = "";
     unsigned long count = 0;
+    std::pair<std::set<std::pair<int, bool>, set_compare>::iterator, bool> set_rtn;
+    
     for (auto mapping : fMappings) {
-        std::pair<int, int> addr = mapping.second->value();
-        long* map = (long*) mmap(0, sysconf(_SC_PAGE_SIZE), PROT_READ | PROT_WRITE, MAP_SHARED, fd, sysconf(_SC_PAGE_SIZE) * (addr.first - 1));
-        if (map == MAP_FAILED) {
-            close(fd);
-            perror("Error mmapping the file for insertion");
-            exit(EXIT_FAILURE);
+        set_rtn = found_once.insert(std::pair<int, bool>(mapping.first, true));
+        if (set_rtn.second) {
+            std::pair<int, int> addr = mapping.second->value();
+            long* map = (long*) mmap(0, sysconf(_SC_PAGE_SIZE), PROT_READ | PROT_WRITE, MAP_SHARED, fd, sysconf(_SC_PAGE_SIZE) * (addr.first - 1));
+            if (map == MAP_FAILED) {
+                close(fd);
+                perror("Error mmapping the file for insertion");
+                exit(EXIT_FAILURE);
+            }
+            long value = map[addr.second - 1];
+            if (munmap(map, sysconf(_SC_PAGE_SIZE)) == -1) {
+                perror("Error unmapping the file");
+                close(fd);
+                exit(EXIT_FAILURE);
+            }
+            std::stringstream keyToTextConverter;
+            std::stringstream valueToTextConverter;
+            keyToTextConverter << mapping.first;
+            valueToTextConverter << value;
+            rtn += keyToTextConverter.str() + ":" + valueToTextConverter.str() + " ";
+            count++;
         }
-        long value = map[addr.second - 1];
-        if (munmap(map, sysconf(_SC_PAGE_SIZE)) == -1) {
-            perror("Error unmapping the file");
-            close(fd);
-            exit(EXIT_FAILURE);
-        }
-        std::stringstream keyToTextConverter;
-        std::stringstream valueToTextConverter;
-        keyToTextConverter << mapping.first;
-        valueToTextConverter << value;
-        rtn += keyToTextConverter.str() + ":" + valueToTextConverter.str() + " ";
-        count++;
     }
     std::pair<unsigned long, std::string> pair(count, rtn);
     return pair;

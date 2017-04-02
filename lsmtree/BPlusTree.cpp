@@ -262,8 +262,8 @@ LeafNode* BPlusTree::find_first_leaf_node(Node* aRoot) {
     return leafNode;
 }
 
-std::pair<unsigned long, std::string> BPlusTree::print_leaves_string (int fd) {
-    return fPrinter.key_value_pairs(fRoot, fd);
+std::pair<unsigned long, std::string> BPlusTree::print_leaves_string (int fd, std::set<std::pair<int, bool>, set_compare>& found_once) {
+    return fPrinter.key_value_pairs(fRoot, fd, found_once);
 }
 
 void BPlusTree::destroyTree()

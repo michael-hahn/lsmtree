@@ -22,6 +22,7 @@
 #pragma once
 
 #include <queue>
+#include "comp.h"
 
 class Node;
 
@@ -33,7 +34,7 @@ public:
     void setVerbose(bool aVerbose);
     void printTree(Node* aRoot) const;
     void printLeaves(Node* aRoot);
-    std::pair<unsigned long, std::string> key_value_pairs(Node *aRoot, int fd);
+    std::pair<unsigned long, std::string> key_value_pairs(Node *aRoot, int fd, std::set<std::pair<int, bool>, set_compare>& found_once);
 private:
     void printEmptyTree() const;
     void printNonEmptyTree(Node* aRoot) const;

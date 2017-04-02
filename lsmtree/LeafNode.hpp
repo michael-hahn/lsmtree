@@ -26,6 +26,7 @@
 #include <vector>
 #include "Node.hpp"
 #include "Record.hpp"
+#include "comp.h"
 
 class LeafNode : public Node
 {
@@ -58,7 +59,7 @@ public:
     void copyRangeUntil(KeyType aKey, std::vector<EntryType>& aVector);
     void copyRange(std::vector<EntryType>& aVector);
     std::string toString(bool aVerbose = false) const override;
-    std::pair<unsigned long, std::string> key_value_pairs(int fd) const;
+    std::pair<unsigned long, std::string> key_value_pairs(int fd, std::set<std::pair<int, bool>, set_compare>& found_once) const;
     std::vector<std::pair<KeyType, Record*>> get_mappings();
 private:
     void copyHalfFrom(std::vector<MappingType>& aMappings);

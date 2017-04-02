@@ -33,6 +33,7 @@
 #include <fcntl.h>
 #include "Definitions.hpp"
 #include "Printer.hpp"
+#include "comp.h"
 
 class InternalNode;
 class LeafNode;
@@ -76,7 +77,7 @@ public:
     
     /// Same as printLeaves function
     /// Except it retruns a string instead of I/O
-    std::pair<unsigned long, std::string> print_leaves_string (int fd);
+    std::pair<unsigned long, std::string> print_leaves_string (int fd, std::set<std::pair<int, bool>, set_compare>& found_once);
     
     /// Print the value associated with a given key, along with the address
     /// at which the tree stores that value.

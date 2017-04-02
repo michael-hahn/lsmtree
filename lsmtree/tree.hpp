@@ -17,6 +17,7 @@
 #include "BPlusTree.hpp"
 #include "bloom_filter.hpp"
 #include "Definitions.hpp"
+#include "comp.h"
 
 class Tree {
 public:
@@ -36,7 +37,7 @@ public:
     
     void delete_key (int key);
     
-    std::pair<unsigned long, std::string> tree_dump ();
+    std::pair<unsigned long, std::string> tree_dump (std::set<std::pair<int, bool>, set_compare>& found_once);
     
 private:
     BPlusTree* btree;

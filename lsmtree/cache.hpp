@@ -18,7 +18,8 @@
 #include "tree.hpp"
 #include "memmapped.hpp"
 #include "memmapped2.hpp"
-#include "memmapped3.hpp"
+#include "memmappedL.hpp"
+#include "tree.hpp"
 #include "comp.h"
 
 #define MAXCACHESIZE 4
@@ -44,13 +45,13 @@ public:
     
     std::vector<std::pair<int, long>> sanitize();
     
-    void insert (int key, long value, Memmapped* mm1, Memmapped2* mm2, Memmapped3* mm3);
+    void insert (int key, long value, Memmapped* mm1, Memmapped2* mm2, MemmappedL* mml, Tree* tree);
     
-    std::string get_value_or_blank (int key, Memmapped* mm1, Memmapped2* mm2, Memmapped3* mm3);
+    std::string get_value_or_blank (int key, Memmapped* mm1, Memmapped2* mm2, MemmappedL* mml, Tree* tree);
     
-    void efficient_range(int lower, int upper, Memmapped* mm1, Memmapped2* mm2, Memmapped3* mm3, std::map<int, long>& result);
+    void efficient_range(int lower, int upper, Memmapped* mm1, Memmapped2* mm2, MemmappedL* mml, Tree* tree, std::map<int, long>& result);
     
-    void delete_key (int key, Memmapped* mm1, Memmapped2* mm2, Memmapped3* mm3);
+    void delete_key (int key, Memmapped* mm1, Memmapped2* mm2, MemmappedL* mml, Tree* tree);
     
     std::pair<std::string, int> cache_dump (std::set<std::pair<int, bool>, set_compare>& found_once);
     

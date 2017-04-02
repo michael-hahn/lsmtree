@@ -21,6 +21,7 @@
 #include "memmapped.hpp"
 #include "memmapped2.hpp"
 #include "memmapped3.hpp"
+#include "memmappedL.hpp"
 #include "comp.h"
 
 #define MAX_STDIN_BUFFER_SIZE 1024
@@ -60,14 +61,14 @@ int main(int argc, const char * argv[]) {
     Memmapped2 mm2("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mm2.dat", 100, 0.001);
     
     //initialize fourth level
-    Memmapped3 mm3("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mm3.dat");
+    MemmappedL mml("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mml.dat", 500, 0.001);
     
     //write a binary file
     //for debugging only
     //write_binary_file();
     
     //initialize B+ tree
-    //Tree btree("/Users/Michael/Documents/Harvard/g1/cs265/xcode/test.dat", 100000000, 0.01);
+    Tree btree("/Users/Michael/Documents/Harvard/g1/cs265/xcode/tree.dat", 100000000, 0.01);
     
     
     
@@ -149,7 +150,7 @@ int main(int argc, const char * argv[]) {
 //                                            timer_start.tv_sec = mts.tv_sec;
 //                                            timer_start.tv_nsec = mts.tv_nsec;
                                             
-                                              cache.insert(int_key, int_value, &mm1, &mm2, &mm3);
+                                              cache.insert(int_key, int_value, &mm1, &mm2, &mml, &btree);
                                             
 //                                            clock_serv_t cclock2;
 //                                            mach_timespec_t mts2;
@@ -184,7 +185,7 @@ int main(int argc, const char * argv[]) {
                                     //fprintf(stdout, "INSERT key-value pair: %d %d to the database...\n", int_key, int_value);
                                     //TODO: insert to the database here
                                     //database.insert_or_update(int_key, int_value);
-                                    cache.insert(int_key, int_value, &mm1, &mm2, &mm3);
+                                    cache.insert(int_key, int_value, &mm1, &mm2, &mml, &btree);
                                 }
                             }
                         }
@@ -216,7 +217,7 @@ int main(int argc, const char * argv[]) {
                                     timer_start.tv_sec = mts.tv_sec;
                                     timer_start.tv_nsec = mts.tv_nsec;
                                     
-                                    std::cout << cache.get_value_or_blank(int_key, &mm1, &mm2, &mm3) << std::endl;
+                                    std::cout << cache.get_value_or_blank(int_key, &mm1, &mm2, &mml, &btree) << std::endl;
                                     
                                     clock_serv_t cclock2;
                                     mach_timespec_t mts2;
@@ -244,7 +245,7 @@ int main(int argc, const char * argv[]) {
                                 //fprintf(stdout, "GET value from the key: %d if key is in the database...\n", int_key);
                                 //TODO: get from the database here
                                 //std::cout << "LOGINFO:\t\t" << database.get_value_or_blank(int_key) << std::endl;
-                                std::cout << cache.get_value_or_blank(int_key, &mm1, &mm2, &mm3) << std::endl;
+                                std::cout << cache.get_value_or_blank(int_key, &mm1, &mm2, &mml, &btree) << std::endl;
                             }
                         }
                     }
@@ -278,7 +279,7 @@ int main(int argc, const char * argv[]) {
                                                 //std::cout << "LOGINFO:\t\t" << database.range(int_from, int_to) << std::endl;
                                                 if (EFFICIENT_RANGE) {
                                                     std::map<int, long> map_to_print;
-                                                    cache.efficient_range(int_from, int_to, &mm1, &mm2, &mm3,  map_to_print);
+                                                    cache.efficient_range(int_from, int_to, &mm1, &mm2, &mml, &btree, map_to_print);
                                                     for (std::map<int, long>::iterator it = map_to_print.begin(); it != map_to_print.end(); it++) {
                                                         if (it->second != LONG_MAX) {
                                                             std::cout << it->first << ":" << it->second << " ";
@@ -310,7 +311,7 @@ int main(int argc, const char * argv[]) {
                                         //std::cout << "LOGINFO:\t\t" << database.range(int_from, int_to) << std::endl;
                                         if (EFFICIENT_RANGE) {
                                             std::map<int, long> map_to_print;
-                                            cache.efficient_range(int_from, int_to, &mm1, &mm2, &mm3, map_to_print);
+                                            cache.efficient_range(int_from, int_to, &mm1, &mm2, &mml, &btree, map_to_print);
                                             for (std::map<int, long>::iterator it = map_to_print.begin(); it != map_to_print.end(); it++) {
                                                 if (it->second != LONG_MAX) {
                                                     std::cout << it->first << ":" << it->second << " ";
@@ -342,7 +343,7 @@ int main(int argc, const char * argv[]) {
                                     //fprintf(stdout, "DELETE value from the key: %d if key is in the database...\n", int_key);
                                     //TODO: delete from the database here
                                     //database.delete_key(int_key);
-                                    cache.delete_key(int_key, &mm1, &mm2, &mm3);
+                                    cache.delete_key(int_key, &mm1, &mm2, &mml, &btree);
                                 }
                             }
                         } else {
@@ -354,7 +355,7 @@ int main(int argc, const char * argv[]) {
                                 //fprintf(stdout, "DELETE value from the key: %d if key is in the database...\n", int_key);
                                 //TODO: delete from the database here
                                 //database.delete_key(int_key);
-                                cache.delete_key(int_key, &mm1, &mm2, &mm3);
+                                cache.delete_key(int_key, &mm1, &mm2, &mml, &btree);
                             }
                         }
                     }
@@ -374,7 +375,7 @@ int main(int argc, const char * argv[]) {
                             path_str.erase(std::remove(path_str.begin(), path_str.end(), '"'), path_str.end());
                             //std::cout << "LOGINFO:\t\t" << "LOAD file from " << path_str << " to the database...\n" << std::endl;
                             //TODO: load file to the database here
-                            read_binary_file(path_str, &cache, &mm1, &mm2, &mm3);
+                            read_binary_file(path_str, &cache, &mm1, &mm2, &mml, &btree);
                         }
                     }
                 } else if (strncmp(token, "s", 1) == 0) {
@@ -388,21 +389,24 @@ int main(int argc, const char * argv[]) {
                         std::pair<std::string, int> cache_result = cache.cache_dump(total_pairs);
                         std::pair<std::string, int> mm1_result = mm1.mm1_dump(total_pairs);
                         std::pair<std::string, int> mm2_result = mm2.mm2_dump(total_pairs);
-                        std::pair<std::string, int> mm3_result = mm3.mm3_dump(total_pairs);
+                        std::pair<std::string, int> mml_result = mml.mml_dump(total_pairs);
+                        std::pair<unsigned long, std::string> tree_result = btree.tree_dump(total_pairs);
                         int unique_count = 0;
                         for (std::set<std::pair<int, bool>, set_compare>::iterator it = total_pairs.begin(); it != total_pairs.end(); it++) {
                             if (it->second)
                                 unique_count++;
                         }
-                        std::cout << "LOGINFO:\t\t" << "Total Pairs: " << unique_count << std::endl;
-                        std::cout << "LOGINFO:\t\t" << "LVL1: "<< cache_result.second << std::endl;
-                        std::cout << "LOGINFO:\t\t" << cache_result.first << std::endl;
-                        std::cout << "LOGINFO:\t\t" << "LVL2: "<< mm1_result.second << std::endl;
-                        std::cout << "LOGINFO:\t\t" << mm1_result.first << std::endl;
-                        std::cout << "LOGINFO:\t\t" << "LVL3: "<< mm2_result.second << std::endl;
-                        std::cout << "LOGINFO:\t\t" << mm2_result.first << std::endl;
-                        std::cout << "LOGINFO:\t\t" << "LVL4: "<< mm3_result.second << std::endl;
-                        std::cout << "LOGINFO:\t\t" << mm3_result.first << std::endl;
+                        std::cout << "Total Pairs: " << unique_count << std::endl;
+                        std::cout << "LVL1: "<< cache_result.second << std::endl;
+                        std::cout << cache_result.first << std::endl;
+                        std::cout << "LVL2: "<< mm1_result.second << std::endl;
+                        std::cout << mm1_result.first << std::endl;
+                        std::cout << "LVL3: "<< mm2_result.second << std::endl;
+                        std::cout << mm2_result.first << std::endl;
+                        std::cout << "LVL4: "<< mml_result.second << std::endl;
+                        std::cout << mml_result.first << std::endl;
+                        std::cout << "LVL5: "<< tree_result.first << std::endl;
+                        std::cout << tree_result.second << std::endl;
                     }
                 } else if (strncmp(token, "q", 1) == 0) {
                     break;
@@ -420,8 +424,8 @@ int main(int argc, const char * argv[]) {
     
     mm1.free_mem();
     mm2.free_mem();
-    mm3.free_mem();
-    //btree.free_mem();
+    mml.free_mem();
+    btree.free_mem();
     
     return 0;
 }

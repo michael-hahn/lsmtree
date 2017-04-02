@@ -1,13 +1,12 @@
 //
-//  memmapped2.cpp
+//  memmappedL.cpp
 //  lsmtree
 //
-//  Created by Michael Hahn on 3/27/17.
+//  Created by Michael Hahn on 4/2/17.
 //  Copyright © 2017 Michael Hahn. All rights reserved.
 //
 
-#include "memmapped2.hpp"
-#include "memmapped.hpp"
+#include "memmappedL.hpp"
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -15,12 +14,10 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include "cache.hpp"
+#include <set>
 
-//initialize a file for persistant second-level storage
-//keep the file open until the whole database is closed unless error occurs
-Memmapped2::Memmapped2(std::string file_path, int estimate_number_insertion, double false_pos_prob){
-    construct_mm2_filter(estimate_number_insertion, false_pos_prob);
+MemmappedL::MemmappedL(std::string file_path, int estimate_number_insertion, double false_pos_prob) {
+    construct_mml_filter(estimate_number_insertion, false_pos_prob);
     
     this->cur_array_num = 0;
     
@@ -32,7 +29,7 @@ Memmapped2::Memmapped2(std::string file_path, int estimate_number_insertion, dou
     }
     this->fd = fd;
     
-    result = lseek(this->fd, FILESIZE_2 - 1, SEEK_SET);
+    result = lseek(this->fd, FILE_SIZE_L - 1, SEEK_SET);
     if (result == -1) {
         close(this->fd);
         perror("Error using lseek() to stretch the file");
@@ -46,7 +43,7 @@ Memmapped2::Memmapped2(std::string file_path, int estimate_number_insertion, dou
     }
     
     //memory map each page
-    for (int i = 0; i < ARRAY_NUM_2; i++) {
+    for (int i = 0; i < ARRAY_NUM_L; i++) {
         std::pair<int, long>* map = (std::pair<int, long>*) mmap(0, sysconf(_SC_PAGE_SIZE), PROT_READ | PROT_WRITE, MAP_SHARED, this->fd, sysconf(_SC_PAGE_SIZE) * i);
         if (map == MAP_FAILED) {
             close(this->fd);
@@ -55,42 +52,43 @@ Memmapped2::Memmapped2(std::string file_path, int estimate_number_insertion, dou
         }
         this->mapped_addr[i] = map;
     }
+
 }
 
-void Memmapped2::construct_mm2_filter (int estimate_number_insertion, double false_pos_prob) {
+void MemmappedL::construct_mml_filter(int estimate_number_insertion, double false_pos_prob) {
     bloom_parameters parameters;
     parameters.projected_element_count = estimate_number_insertion;
     parameters.false_positive_probability = false_pos_prob;
     
     if (!parameters) {
-        std::cout << "LOGFATAL:\t\t" << "Invalid mm2 bloom filter parameters" << std::endl;
+        std::cout << "LOGFATAL:\t\t" << "Invalid mml bloom filter parameters" << std::endl;
         assert(parameters);
     }
     
     parameters.compute_optimal_parameters();
     
-    for (int i = 0; i < ARRAY_NUM_2; i++) {
+    for (int i = 0; i < ARRAY_NUM_L; i++) {
         bloom_filter filter(parameters);
-        this->mm2_filter[i] = filter;
+        this->mml_filter[i] = filter;
     }
     return;
 }
 
-bool Memmapped2::in_mm2 (int key, int num) {
-    if (num >= ARRAY_NUM_2) {
+bool MemmappedL::in_mml (int key, int num) {
+    if (num >= ARRAY_NUM_L) {
         perror("Error using bloom filter");
     }
-    if (this->mm2_filter[num].contains(key) > 0) {
-        //std::cout << "LOGINFO:\t\t" << "Cache bloom filter contains " << key << std::endl;
+    if (this->mml_filter[num].contains(key) > 0) {
+        //std::cout << "LOGINFO:\t\t" << "MemmappedL bloom filter contains " << key << std::endl;
         return true;
     } else {
-        //std::cout << "LOGINFO:\t\t" << "Cache bloom filter does NOT contain " << key << std::endl;
+        //std::cout << "LOGINFO:\t\t" << "MemmappedL bloom filter does NOT contain " << key << std::endl;
         return false;
     }
 }
 
-void Memmapped2::free_mem() {
-    for (int i = 0; i < ARRAY_NUM_2; i++) {
+void MemmappedL::free_mem() {
+    for (int i = 0; i < ARRAY_NUM_L; i++) {
         if (munmap(this->mapped_addr[i], sysconf(_SC_PAGE_SIZE)) == -1) {
             perror("Error unmapping the file");
             close(this->fd);
@@ -104,9 +102,9 @@ void Memmapped2::free_mem() {
 //same functionality as sanitize function in first-level
 //consolidate all pages, only keep the most updated value of each key
 //including deletion keys
-std::map<int, long> Memmapped2::consolidate(){
+std::map<int, long> MemmappedL::consolidate(){
     std::map<int, long> rtn;
-    for (int i = ARRAY_NUM_2 - 1; i >= 0; i--) {
+    for (int i = ARRAY_NUM_L - 1; i >= 0; i--) {
         std::pair<int, long>* map = this->mapped_addr[i];
         for (int j = 0; j < this->elt_size[i]; j++) {
             rtn.insert(map[j]);
@@ -115,40 +113,42 @@ std::map<int, long> Memmapped2::consolidate(){
     return rtn;
 }
 
-void Memmapped2::insert(std::map<int, long> pairs, MemmappedL* mml, Tree* tree) {
+void MemmappedL::insert(std::map<int, long> pairs, Tree* tree) {
     //when flushing to the next level is needed
-    if (this->cur_array_num >= ARRAY_NUM_2) {
+    if (this->cur_array_num >= ARRAY_NUM_L) {
         this->cur_array_num = 0;
-        for (int i = 0; i < ARRAY_NUM_2; i++) {
-            this->mm2_filter[i].clear();
+        for (int i = 0; i < ARRAY_NUM_L; i++) {
+            this->mml_filter[i].clear();
         }
         std::map<int, long> consolidated = this->consolidate();
-        mml->insert(consolidated, tree);
+        for (std::map<int, long>::iterator it = consolidated.begin(); it != consolidated.end(); it++) {
+            tree->insert_or_update(it->first, it->second);
+        }
     }
     std::pair<int, long>* map = this->mapped_addr[this->cur_array_num];
     
     std::map<int, long>::iterator it = pairs.begin();
     for (int i = 0; i < pairs.size(); i++) {
         map[i] = std::pair<int, long>(it->first, it->second);
-        if (!in_mm2(it->first, this->cur_array_num)){
-            this->mm2_filter[this->cur_array_num].insert(it->first);
+        if (!in_mml(it->first, this->cur_array_num)){
+            this->mml_filter[this->cur_array_num].insert(it->first);
         }
         it++;
     }
     
     this->fenses[cur_array_num] = std::pair<int, int>(pairs.begin()->first, pairs.rbegin()->first);
-    //std::cout << "MM2: fense " << cur_array_num << ": " << pairs.begin()->first << " - " << pairs.rbegin()->first << std::endl;
+    //std::cout << "MML: fense " << cur_array_num << ": " << pairs.begin()->first << " - " << pairs.rbegin()->first << std::endl;
     this->elt_size[cur_array_num] = pairs.size();
-    //std::cout << "MM2: Page " << cur_array_num << " size: " << pairs.size() << std::endl;
+    //std::cout << "MML: Page " << cur_array_num << " size: " << pairs.size() << std::endl;
     this->cur_array_num++;
     return;
 }
 
-std::string Memmapped2::get_value_or_blank(int key, MemmappedL* mml, Tree* tree) {
+std::string MemmappedL::get_value_or_blank(int key, Tree* tree) {
     std::string rtn = "";
     for (int i = this->cur_array_num - 1; i >= 0; i--) {
         if (key >= this->fenses[i].first && key <= this->fenses[i].second) {
-            if (in_mm2(key, i)) {
+            if (in_mml(key, i)) {
                 std::pair<int, long>* map = this->mapped_addr[i];
                 size_t left = 0;
                 size_t right = this->elt_size[i] - 1;
@@ -176,11 +176,11 @@ std::string Memmapped2::get_value_or_blank(int key, MemmappedL* mml, Tree* tree)
         }
     }
     if (rtn == "")
-        rtn = mml->get_value_or_blank(key, tree);
+        rtn = tree->get_value_or_blank(key);
     return rtn;
 }
 
-void Memmapped2::efficient_range(int lower, int upper, MemmappedL* mml, Tree* tree, std::map<int, long>& result) {
+void MemmappedL::efficient_range(int lower, int upper, Tree* tree, std::map<int, long>& result) {
     for (int i = this->cur_array_num - 1; i >= 0; i--) {
         if (lower > this->fenses[i].second || upper <= this->fenses[i].first)
             ;
@@ -193,11 +193,11 @@ void Memmapped2::efficient_range(int lower, int upper, MemmappedL* mml, Tree* tr
             }
         }
     }
-    mml->efficient_range(lower, upper, tree, result);
+    tree->efficient_range(lower, upper, result);
     return;
 }
 
-std::pair<std::string, int> Memmapped2::mm2_dump (std::set<std::pair<int, bool>, set_compare>& found_once) {
+std::pair<std::string, int> MemmappedL::mml_dump (std::set<std::pair<int, bool>, set_compare>& found_once) {
     int total_valid = 0;
     std::string rtn = "";
     std::pair<std::set<std::pair<int, bool>, set_compare>::iterator, bool> set_rtn;
@@ -223,5 +223,5 @@ std::pair<std::string, int> Memmapped2::mm2_dump (std::set<std::pair<int, bool>,
         }
     }
     return std::pair<std::string, int> (rtn, total_valid);
-
+    
 }

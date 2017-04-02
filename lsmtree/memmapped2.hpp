@@ -14,7 +14,8 @@
 #include <vector>
 #include <map>
 #include "bloom_filter.hpp"
-#include "memmapped3.hpp"
+#include "memmappedL.hpp"
+#include "tree.hpp"
 #include "comp.h"
 
 #define ARRAY_NUM_2 4
@@ -48,11 +49,11 @@ public:
     
     std::map<int, long> consolidate();
     
-    void insert(std::map<int, long> pairs, Memmapped3* mm3);
+    void insert(std::map<int, long> pairs, MemmappedL* mml, Tree* tree);
     
-    std::string get_value_or_blank(int key, Memmapped3* mm3);
+    std::string get_value_or_blank(int key, MemmappedL* mml, Tree* tree);
     
-    void efficient_range(int lower, int upper, Memmapped3* mm3, std::map<int, long>& result);
+    void efficient_range(int lower, int upper, MemmappedL* mml, Tree* tree, std::map<int, long>& result);
     
     std::pair<std::string, int> mm2_dump (std::set<std::pair<int, bool>, set_compare>& found_once);
 };

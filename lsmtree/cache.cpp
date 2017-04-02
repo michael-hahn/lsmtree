@@ -67,7 +67,7 @@ std::vector<std::pair<int, long>> Cache::sanitize() {
 //Not update needed
 //Always insert at the front if there is space
 //If cache is full, flush all of the cache to the next level before insertion
-void Cache::insert (int key, long value, Memmapped* mm1, Memmapped2* mm2, Memmapped3* mm3) {
+void Cache::insert (int key, long value, Memmapped* mm1, Memmapped2* mm2, MemmappedL* mml, Tree* tree) {
     std::pair<int, long> entry (key, value);
     //if (value == LONG_MAX) std::cout << "LOGINFO:\t\t" << "Deletion entry is inserted into the cache." << std::endl;
     if (this->cache.size() < MAXCACHESIZE) {
@@ -80,7 +80,7 @@ void Cache::insert (int key, long value, Memmapped* mm1, Memmapped2* mm2, Memmap
         //std::cout << "LOGINFO:\t\t" << "Cache entries: " << this->cache.size() << std::endl;
         return;
     } else {
-        mm1->insert(this->sanitize(), mm2, mm3);
+        mm1->insert(this->sanitize(), mm2, mml, tree);
         //std::cout << "LOGINFO:\t\t" << "Insertion to cache causes flush " << remove_from_cache.first << " : " << remove_from_cache.second << " to disk." << std::endl;
         this->cache.clear();
         this->cache_filter.clear();
@@ -98,7 +98,7 @@ void Cache::insert (int key, long value, Memmapped* mm1, Memmapped2* mm2, Memmap
 //if cache bloom filter indicates an existance of key in cache, search cache
 //Always start to search from the beginning of the vector since newer value is located at the beginning
 //Otherwise search the database
-std::string Cache::get_value_or_blank (int key, Memmapped* mm1, Memmapped2* mm2, Memmapped3* mm3) {
+std::string Cache::get_value_or_blank (int key, Memmapped* mm1, Memmapped2* mm2, MemmappedL* mml, Tree* tree) {
     std::string rtn = "";
     if (in_cache(key)) {
     //if (true) {
@@ -118,31 +118,31 @@ std::string Cache::get_value_or_blank (int key, Memmapped* mm1, Memmapped2* mm2,
         }
         if (rtn == "") {
             //std::cout << "LOGINFO:\t\t" << "Cache counting bloom filter returns false positive. Searching the database..." << std::endl;
-            rtn = mm1->get_value_or_blank(key, mm2, mm3);
+            rtn = mm1->get_value_or_blank(key, mm2, mml, tree);
         }
     }
     else {
         //std::cout << "LOGINFO:\t\t" << "No match found in cache according to cache bloom filter. Searching the database..." << std::endl;
-        rtn = mm1->get_value_or_blank(key, mm2, mm3);
+        rtn = mm1->get_value_or_blank(key, mm2, mml, tree);
     }
     return rtn;
 }
 
-void Cache::efficient_range(int lower, int upper, Memmapped* mm1, Memmapped2* mm2, Memmapped3* mm3, std::map<int, long>& result) {
+void Cache::efficient_range(int lower, int upper, Memmapped* mm1, Memmapped2* mm2, MemmappedL* mml, Tree* tree, std::map<int, long>& result) {
     for (std::vector<std::pair<int, long>>::iterator it = this->cache.begin(); it != this->cache.end(); it++) {
         if (it->first >= lower && it->first < upper) {
             result.insert(*it); //only the most updated key-value pairs will be inserted
         }
     }
-    mm1->efficient_range(lower, upper, mm2, mm3, result);
+    mm1->efficient_range(lower, upper, mm2, mml, tree, result);
     return;
     
 }
 
 //We insert the deletion into the cache. The key is marked "delete": we implement as LONG_MAX (valid values are int-sized only).
-void Cache::delete_key (int key, Memmapped* mm1, Memmapped2* mm2, Memmapped3* mm3) {
+void Cache::delete_key (int key, Memmapped* mm1, Memmapped2* mm2, MemmappedL* mml, Tree* tree) {
     //std::cout << "LOGINFO:\t\t" << "Remove " << key << " from the database" << std::endl;
-    insert(key, LONG_MAX, mm1, mm2, mm3);
+    insert(key, LONG_MAX, mm1, mm2, mml, tree);
 }
 
 //Only shows the most updated key-value pair

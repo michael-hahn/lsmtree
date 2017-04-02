@@ -15,7 +15,8 @@
 #include <string>
 #include <set>
 #include "memmapped2.hpp"
-#include "memmapped3.hpp"
+#include "memmappedL.hpp"
+#include "tree.hpp"
 #include "bloom_filter.hpp"
 #include "comp.h"
 
@@ -48,11 +49,11 @@ public:
     
     std::map<int, long> consolidate();
     
-    void insert(std::vector<std::pair<int, long>> cache, Memmapped2* mm2, Memmapped3* mm3);
+    void insert(std::vector<std::pair<int, long>> cache, Memmapped2* mm2, MemmappedL* mm, Tree* tree);
     
-    std::string get_value_or_blank(int key, Memmapped2* mm2, Memmapped3* mm3);
+    std::string get_value_or_blank(int key, Memmapped2* mm2, MemmappedL* mml, Tree* tree);
     
-    void efficient_range(int lower, int upper, Memmapped2* mm2, Memmapped3* mm, std::map<int, long>& result);
+    void efficient_range(int lower, int upper, Memmapped2* mm2, MemmappedL* mml, Tree* tree, std::map<int, long>& result);
     
     std::pair<std::string, int> mm1_dump (std::set<std::pair<int, bool>, set_compare>& found_once);
 };

@@ -16,7 +16,8 @@
 #include "tree.hpp"
 #include "memmapped.hpp"
 #include "memmapped2.hpp"
-#include "memmapped3.hpp"
+#include "memmappedL.hpp"
+#include "tree.hpp"
 
 //#include "utils.h"
 
@@ -68,7 +69,7 @@ int to_int(char* int_string) {
     return n;
 }
 
-int read_binary_file (std::string file_path, Cache* cache, Memmapped* mm1, Memmapped2* mm2, Memmapped3* mm3) {
+int read_binary_file (std::string file_path, Cache* cache, Memmapped* mm1, Memmapped2* mm2, MemmappedL* mml, Tree* tree) {
     int key;
     int value;
     
@@ -86,7 +87,7 @@ int read_binary_file (std::string file_path, Cache* cache, Memmapped* mm1, Memma
             file.read((char*)&value, 4);
             
             //std::cout << "LOGINFO:\t\t" << "Inserting " << key << " : " << value << " from binary file..." << std::endl;
-            cache->insert(key, value, mm1, mm2, mm3);
+            cache->insert(key, value, mm1, mm2, mml, tree);
         }
         //std::cout << "LOGINFO:\t\t" << "Insertion from binary file is done..." << std::endl;
         file.close();

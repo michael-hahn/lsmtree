@@ -118,8 +118,7 @@ std::map<int, long> Memmapped::consolidate(){
     }
     return rtn;
 }
-
-void Memmapped::insert(std::vector<std::pair<int, long>> cache, Memmapped2* mm2, Memmapped3* mm3) {
+void Memmapped::insert(std::vector<std::pair<int, long>> cache, Memmapped2* mm2, MemmappedL* mml, Tree* tree) {
     //when flushing to the next level is needed
     if (this->cur_array_num >= ARRAY_NUM) {
         this->cur_array_num = 0;
@@ -127,7 +126,7 @@ void Memmapped::insert(std::vector<std::pair<int, long>> cache, Memmapped2* mm2,
             this->mm1_filter[i].clear();
         }
         std::map<int, long> consolidated = this->consolidate();
-        mm2->insert(consolidated, mm3);
+        mm2->insert(consolidated, mml, tree);
     }
     std::pair<int, long>* map = this->mapped_addr[this->cur_array_num];
     for (int i = 0; i < cache.size(); i++) {
@@ -144,7 +143,7 @@ void Memmapped::insert(std::vector<std::pair<int, long>> cache, Memmapped2* mm2,
     return;
 }
 
-std::string Memmapped::get_value_or_blank(int key, Memmapped2* mm2, Memmapped3* mm3) {
+std::string Memmapped::get_value_or_blank(int key, Memmapped2* mm2, MemmappedL* mml, Tree* tree) {
     std::string rtn = "";
     for (int i = this->cur_array_num - 1; i >= 0; i--) {
         if (key >= this->fenses[i].first && key <= this->fenses[i].second) {
@@ -176,11 +175,11 @@ std::string Memmapped::get_value_or_blank(int key, Memmapped2* mm2, Memmapped3* 
         }
     }
     if (rtn == "")
-        rtn = mm2->get_value_or_blank(key, mm3);
+        rtn = mm2->get_value_or_blank(key, mml, tree);
     return rtn;
 }
 
-void Memmapped::efficient_range(int lower, int upper, Memmapped2* mm2, Memmapped3* mm3, std::map<int, long>& result) {
+void Memmapped::efficient_range(int lower, int upper, Memmapped2* mm2, MemmappedL* mml, Tree* tree, std::map<int, long>& result) {
     for (int i = this->cur_array_num - 1; i >= 0; i--) {
         if (lower > this->fenses[i].second || upper <= this->fenses[i].first)
             ;
@@ -193,7 +192,7 @@ void Memmapped::efficient_range(int lower, int upper, Memmapped2* mm2, Memmapped
             }
         }
     }
-    mm2->efficient_range(lower, upper, mm3, result);
+    mm2->efficient_range(lower, upper, mml, tree, result);
     return;
 }
 
@@ -224,28 +223,3 @@ std::pair<std::string, int> Memmapped::mm1_dump (std::set<std::pair<int, bool>, 
     }
     return std::pair<std::string, int> (rtn, total_valid);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

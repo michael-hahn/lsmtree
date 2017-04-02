@@ -52,9 +52,6 @@ int main(int argc, const char * argv[]) {
     
     //initialize cache
     Cache cache(20, 0.001);
-
-    //initialize database
-    Db database(200, 0.001);
     
     //initialize second level
     Memmapped mm1("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mm1.dat", 40, 0.001);
@@ -70,7 +67,7 @@ int main(int argc, const char * argv[]) {
     //write_binary_file();
     
     //initialize B+ tree
-    Tree btree("/Users/Michael/Documents/Harvard/g1/cs265/xcode/test.dat", 100000000, 0.01);
+    //Tree btree("/Users/Michael/Documents/Harvard/g1/cs265/xcode/test.dat", 100000000, 0.01);
     
     
     
@@ -424,7 +421,7 @@ int main(int argc, const char * argv[]) {
     mm1.free_mem();
     mm2.free_mem();
     mm3.free_mem();
-    btree.free_mem();
+    //btree.free_mem();
     
     return 0;
 }

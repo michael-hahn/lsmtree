@@ -15,6 +15,8 @@
 #include <map>
 #include "bloom_filter.hpp"
 #include "comp.h"
+#include <pthread.h>
+#include <set>
 
 #define ESTIMATE_NUMBER_INSERTION 200
 #define FALSE_POS_PROB 0.001
@@ -50,7 +52,11 @@ public:
     
     std::string get_value_or_blank(int key);
     
+    void* get_value_or_blank_pthread (void* thread_data);
+    
     void efficient_range(int lower, int upper, std::map<int, long>& result);
+    
+    void* efficient_range_pthread (void* thread_data);
     
     std::pair<std::string, int> mm3_dump (std::set<std::pair<int, bool>, set_compare>& found_once);
 };

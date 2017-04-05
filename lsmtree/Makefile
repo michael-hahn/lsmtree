@@ -1,2 +1,2 @@
 lsmtree: main.cpp
-	clang++ -g -std=c++0x -stdlib=libc++ -lc++ main.cpp -o lsmtree
+	clang++ -g -std=c++0x -stdlib=libc++ -lc++ -lpthread main.cpp -o lsmtree

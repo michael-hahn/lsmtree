@@ -17,6 +17,7 @@
 #include "memmappedL.hpp"
 #include "tree.hpp"
 #include "comp.h"
+#include <pthread.h>
 
 #define ARRAY_NUM_2 4
 #define FILESIZE_2 (sysconf(_SC_PAGE_SIZE) * ARRAY_NUM_2)
@@ -53,7 +54,11 @@ public:
     
     std::string get_value_or_blank(int key, MemmappedL* mml, Tree* tree);
     
+    void* get_value_or_blank_pthread (void* thread_data);
+    
     void efficient_range(int lower, int upper, MemmappedL* mml, Tree* tree, std::map<int, long>& result);
+    
+    void* efficient_range_pthread (void* thread_data);
     
     std::pair<std::string, int> mm2_dump (std::set<std::pair<int, bool>, set_compare>& found_once);
 };

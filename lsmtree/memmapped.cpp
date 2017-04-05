@@ -179,6 +179,54 @@ std::string Memmapped::get_value_or_blank(int key, Memmapped2* mm2, MemmappedL* 
     return rtn;
 }
 
+void* Memmapped::get_value_or_blank_pthread (void* thread_data) {
+    std::string rtn = "";
+    thread_data_get* search_key = (thread_data_get*) thread_data;
+    for (int i = this->cur_array_num - 1; i >= 0; i--) {
+        if (get_stop){
+            pthread_exit(NULL);
+        }
+        if (search_key->key >= this->fenses[i].first && search_key->key <= this->fenses[i].second) {
+            if (in_mm1(search_key->key, i)) {
+                std::pair<int, long>* map = this->mapped_addr[i];
+                size_t left = 0;
+                size_t right = this->elt_size[i] - 1;
+                size_t mid;
+                while (left <= right) {
+                    if (get_stop){
+                        pthread_exit(NULL);
+                    }
+                    mid = (left + right) / 2;
+                    if (map[mid].first == search_key->key) {
+                        if (map[mid].second == LONG_MAX) {
+                            std::stringstream out_long;
+                            out_long << LONG_MAX;
+                            rtn = out_long.str();
+                            search_key->rtn = rtn;
+                            get_stop = true;
+                            pthread_exit(NULL);
+                        } else {
+                            std::stringstream out;
+                            out << map[mid].second;
+                            rtn = out.str();
+                            get_stop = true;
+                            break;
+                        }
+                    } else if (search_key->key > map[mid].first) {
+                        left = mid + 1;
+                    } else {
+                        right = mid - 1;
+                    }
+                }
+                if (rtn != "")
+                    break;
+            }
+        }
+    }
+    search_key->rtn = rtn;
+    pthread_exit(NULL);
+}
+
 void Memmapped::efficient_range(int lower, int upper, Memmapped2* mm2, MemmappedL* mml, Tree* tree, std::map<int, long>& result) {
     for (int i = this->cur_array_num - 1; i >= 0; i--) {
         if (lower > this->fenses[i].second || upper <= this->fenses[i].first)
@@ -194,6 +242,23 @@ void Memmapped::efficient_range(int lower, int upper, Memmapped2* mm2, Memmapped
     }
     mm2->efficient_range(lower, upper, mml, tree, result);
     return;
+}
+
+void* Memmapped::efficient_range_pthread (void* thread_data) {
+    thread_data_range* search_key = (thread_data_range*) thread_data;
+    for (int i = this->cur_array_num - 1; i >= 0; i--) {
+        if (search_key->lower > this->fenses[i].second || search_key->upper <= this->fenses[i].first)
+            ;
+        else {
+            std::pair<int, long>* map = this->mapped_addr[i];
+            for (int j = 0; j < this->elt_size[i]; j++) {
+                if (map[j].first >= search_key->lower && map[j].first < search_key->upper) {
+                    search_key->result.insert(map[j]);
+                }
+            }
+        }
+    }
+    pthread_exit(NULL);
 }
 
 std::pair<std::string, int> Memmapped::mm1_dump (std::set<std::pair<int, bool>, set_compare>& found_once) {

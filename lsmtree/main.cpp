@@ -24,11 +24,15 @@
 #include "memmappedL.hpp"
 #include "comp.h"
 
+#include <pthread.h>
+
 #define MAX_STDIN_BUFFER_SIZE 1024
 
 #define CHECKED_NEEDED 1
 
 #define EFFICIENT_RANGE 1
+
+#define NUM_THREADS 5
 
 extern int errno;
 
@@ -49,28 +53,67 @@ timespec diff(timespec start, timespec end) {
     return temp;
 }
 
+//initialize cache
+Cache cache(20, 0.001);
+
+//initialize second level
+Memmapped mm1("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mm1.dat", 40, 0.001);
+
+//initialize third level
+Memmapped2 mm2("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mm2.dat", 100, 0.001);
+
+//initialize fourth level
+MemmappedL mml("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mml.dat", 500, 0.001);
+
+//write a binary file
+//for debugging only
+//write_binary_file();
+
+//initialize B+ tree
+Tree btree("/Users/Michael/Documents/Harvard/g1/cs265/xcode/tree.dat", 100000000, 0.01);
+
+
+void* cache_get_value_pthread_wrapper(void* thread_data) {
+    return cache.get_value_or_blank_pthread(thread_data);
+}
+
+void* memmapped_get_value_pthread_wrapper(void* thread_data) {
+    return mm1.get_value_or_blank_pthread(thread_data);
+}
+
+void* memmapped2_get_value_pthread_wrapper(void* thread_data) {
+    return mm2.get_value_or_blank_pthread(thread_data);
+}
+
+void* memmappedl_get_value_pthread_wrapper(void* thread_data) {
+    return mml.get_value_or_blank_pthread(thread_data);
+}
+
+void* tree_get_value_pthread_wrapper(void* thread_data) {
+    return btree.get_value_or_blank_pthread(thread_data);
+}
+
+void* cache_range_pthread_wrapper(void* thread_data) {
+    return cache.efficient_range_pthread(thread_data);
+}
+
+void* memmapped_range_pthread_wrapper(void* thread_data) {
+    return mm1.efficient_range_pthread(thread_data);
+}
+
+void* memmapped2_range_pthread_wrapper(void* thread_data) {
+    return mm2.efficient_range_pthread(thread_data);
+}
+
+void* memmappedl_range_pthread_wrapper(void* thread_data) {
+    return mml.efficient_range_pthread(thread_data);
+}
+
+void* tree_range_pthread_wrapper(void* thread_data) {
+    return btree.efficient_range_pthread(thread_data);
+}
+
 int main(int argc, const char * argv[]) {
-    
-    //initialize cache
-    Cache cache(20, 0.001);
-    
-    //initialize second level
-    Memmapped mm1("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mm1.dat", 40, 0.001);
-    
-    //initialize third level
-    Memmapped2 mm2("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mm2.dat", 100, 0.001);
-    
-    //initialize fourth level
-    MemmappedL mml("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mml.dat", 500, 0.001);
-    
-    //write a binary file
-    //for debugging only
-    //write_binary_file();
-    
-    //initialize B+ tree
-    Tree btree("/Users/Michael/Documents/Harvard/g1/cs265/xcode/tree.dat", 100000000, 0.01);
-    
-    
     
     //timer
     timespec timer_start, timer_end;
@@ -209,6 +252,24 @@ int main(int argc, const char * argv[]) {
                                     //TODO: get from the database here
                                     //std::cout << "LOGINFO:\t\t" << database.get_value_or_blank(int_key) << std::endl;
                                     
+                                    pthread_t threads[NUM_THREADS];
+                                    thread_data_get tdg[NUM_THREADS];
+                                    for (int i = 0; i < NUM_THREADS; i++) {
+                                        tdg[i].key = int_key;
+                                        tdg[i].rtn = "";
+                                    }
+                                    pthread_attr_t attr;
+                                    void* status;
+                                    int rc;
+                                    
+                                    pthread_attr_init(&attr);
+                                    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+                                    
+                                    std::stringstream out_long;
+                                    out_long << LONG_MAX;
+                                    std::string longmax = out_long.str();
+                                    
+                    
                                     clock_serv_t cclock;
                                     mach_timespec_t mts;
                                     host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
@@ -217,7 +278,32 @@ int main(int argc, const char * argv[]) {
                                     timer_start.tv_sec = mts.tv_sec;
                                     timer_start.tv_nsec = mts.tv_nsec;
                                     
-                                    std::cout << cache.get_value_or_blank(int_key, &mm1, &mm2, &mml, &btree) << std::endl;
+                                    //std::cout << cache.get_value_or_blank(int_key, &mm1, &mm2, &mml, &btree) << std::endl;
+                                    rc = pthread_create(&threads[0], &attr, cache_get_value_pthread_wrapper, (void*)&tdg[0]);
+                                    if (rc){
+                                        std::cout << "Error:unable to create thread," << rc << std::endl;
+                                        exit(-1);
+                                    }
+                                    rc = pthread_create(&threads[1], &attr, memmapped_get_value_pthread_wrapper, (void*)&tdg[1]);
+                                    if (rc){
+                                        std::cout << "Error:unable to create thread," << rc << std::endl;
+                                        exit(-1);
+                                    }
+                                    rc = pthread_create(&threads[2], &attr, memmapped2_get_value_pthread_wrapper, (void*)&tdg[2]);
+                                    if (rc){
+                                        std::cout << "Error:unable to create thread," << rc << std::endl;
+                                        exit(-1);
+                                    }
+                                    rc = pthread_create(&threads[3], &attr, memmappedl_get_value_pthread_wrapper, (void*)&tdg[3]);
+                                    if (rc){
+                                        std::cout << "Error:unable to create thread," << rc << std::endl;
+                                        exit(-1);
+                                    }
+                                    rc = pthread_create(&threads[4], &attr, tree_get_value_pthread_wrapper, (void*)&tdg[4]);
+                                    if (rc){
+                                        std::cout << "Error:unable to create thread," << rc << std::endl;
+                                        exit(-1);
+                                    }
                                     
                                     clock_serv_t cclock2;
                                     mach_timespec_t mts2;
@@ -227,13 +313,62 @@ int main(int argc, const char * argv[]) {
                                     timer_end.tv_sec = mts2.tv_sec;
                                     timer_end.tv_nsec = mts2.tv_nsec;
                                     
+                                    
+                                    pthread_attr_destroy(&attr);
+                                    for(int i=0; i < NUM_THREADS; i++ ){
+                                        rc = pthread_join(threads[i], &status);
+                                        
+                                        if (rc){
+                                            std::cout << "Error:unable to join," << rc << std::endl;
+                                            exit(-1);
+                                        }
+                                    }
+                                    
+                                    
+                                    if (tdg[0].rtn != "") {
+                                        if (tdg[0].rtn != longmax)
+                                            std::cout << tdg[0].rtn << std::endl;
+                                        else
+                                            std::cout << "" << std::endl;
+                                    } else {
+                                        if (tdg[1].rtn != "") {
+                                            if (tdg[1].rtn != longmax)
+                                                std::cout << tdg[1].rtn << std::endl;
+                                            else
+                                                std::cout << "" << std::endl;
+                                        } else {
+                                            if (tdg[2].rtn != "") {
+                                                if (tdg[2].rtn != longmax)
+                                                    std::cout << tdg[2].rtn << std::endl;
+                                                else
+                                                    std::cout << "" << std::endl;
+                                            } else {
+                                                if (tdg[3].rtn != "") {
+                                                    if (tdg[3].rtn != longmax)
+                                                        std::cout << tdg[3].rtn << std::endl;
+                                                    else
+                                                        std::cout << "" << std::endl;
+                                                } else {
+                                                    if (tdg[4].rtn != "") {
+                                                        if (tdg[4].rtn != longmax)
+                                                            std::cout << tdg[4].rtn << std::endl;
+                                                        else
+                                                            std::cout << "" << std::endl;
+                                                    } else {
+                                                        std::cout << "" << std::endl;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    get_stop = false;
+                                    
+                                    
                                     long get_time = diff(timer_start, timer_end).tv_nsec;
                                     if (get_time > max_get_nano_time)
                                         max_get_nano_time = get_time;
                                     get_counter++;
                                     average_get_nano_time += (get_time - average_get_nano_time) / get_counter;
-                                    
-
                                 }
                             }
                         } else {
@@ -278,8 +413,63 @@ int main(int argc, const char * argv[]) {
                                                 //TODO: get from the database here
                                                 //std::cout << "LOGINFO:\t\t" << database.range(int_from, int_to) << std::endl;
                                                 if (EFFICIENT_RANGE) {
+                                                    pthread_t threads[NUM_THREADS];
+                                                    thread_data_range tdr[NUM_THREADS];
+                                                    for (int i = 0; i < NUM_THREADS; i++) {
+                                                        tdr[i].lower = int_from;
+                                                        tdr[i].upper = int_to;
+                                                    }
+                                                    pthread_attr_t attr;
+                                                    void* status;
+                                                    int rc;
+                                                    
+                                                    pthread_attr_init(&attr);
+                                                    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+                                                    
+                                                    rc = pthread_create(&threads[0], &attr, cache_range_pthread_wrapper, (void*)&tdr[0]);
+                                                    if (rc){
+                                                        std::cout << "Error:unable to create thread," << rc << std::endl;
+                                                        exit(-1);
+                                                    }
+                                                    rc = pthread_create(&threads[1], &attr, memmapped_range_pthread_wrapper, (void*)&tdr[1]);
+                                                    if (rc){
+                                                        std::cout << "Error:unable to create thread," << rc << std::endl;
+                                                        exit(-1);
+                                                    }
+                                                    rc = pthread_create(&threads[2], &attr, memmapped2_range_pthread_wrapper, (void*)&tdr[2]);
+                                                    if (rc){
+                                                        std::cout << "Error:unable to create thread," << rc << std::endl;
+                                                        exit(-1);
+                                                    }
+                                                    rc = pthread_create(&threads[3], &attr, memmappedl_range_pthread_wrapper, (void*)&tdr[3]);
+                                                    if (rc){
+                                                        std::cout << "Error:unable to create thread," << rc << std::endl;
+                                                        exit(-1);
+                                                    }
+                                                    rc = pthread_create(&threads[4], &attr, tree_range_pthread_wrapper, (void*)&tdr[4]);
+                                                    if (rc){
+                                                        std::cout << "Error:unable to create thread," << rc << std::endl;
+                                                        exit(-1);
+                                                    }
+                                                    
+                                                    pthread_attr_destroy(&attr);
+                                                    for(int i=0; i < NUM_THREADS; i++ ){
+                                                        rc = pthread_join(threads[i], &status);
+                                                        
+                                                        if (rc){
+                                                            std::cout << "Error:unable to join," << rc << std::endl;
+                                                            exit(-1);
+                                                        }
+                                                    }
+
                                                     std::map<int, long> map_to_print;
-                                                    cache.efficient_range(int_from, int_to, &mm1, &mm2, &mml, &btree, map_to_print);
+                                                    for (int i = 0; i < NUM_THREADS; i++) {
+                                                        for (std::map<int, long>::iterator it = tdr[i].result.begin(); it != tdr[i].result.end(); it++) {
+                                                            map_to_print.insert(*it);
+                                                        }
+                                                    }
+                                                    
+//                                                    cache.efficient_range(int_from, int_to, &mm1, &mm2, &mml, &btree, map_to_print);
                                                     for (std::map<int, long>::iterator it = map_to_print.begin(); it != map_to_print.end(); it++) {
                                                         if (it->second != LONG_MAX) {
                                                             std::cout << it->first << ":" << it->second << " ";

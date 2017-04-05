@@ -21,6 +21,7 @@
 #include "memmappedL.hpp"
 #include "tree.hpp"
 #include "comp.h"
+#include <pthread.h>
 
 #define MAXCACHESIZE 4
 
@@ -49,7 +50,11 @@ public:
     
     std::string get_value_or_blank (int key, Memmapped* mm1, Memmapped2* mm2, MemmappedL* mml, Tree* tree);
     
+    void* get_value_or_blank_pthread (void* thread_data);
+    
     void efficient_range(int lower, int upper, Memmapped* mm1, Memmapped2* mm2, MemmappedL* mml, Tree* tree, std::map<int, long>& result);
+    
+    void* efficient_range_pthread (void* thread_data);
     
     void delete_key (int key, Memmapped* mm1, Memmapped2* mm2, MemmappedL* mml, Tree* tree);
     

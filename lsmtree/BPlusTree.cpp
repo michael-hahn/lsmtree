@@ -318,6 +318,9 @@ std::string BPlusTree::getValue(KeyType aKey) {
     }
     //ValueType value = record->value();
     std::pair<int, int> addr = record->value();
+    if (get_stop){
+        pthread_exit(NULL);
+    }
     long* map = (long*) mmap(0, sysconf(_SC_PAGE_SIZE), PROT_READ | PROT_WRITE, MAP_SHARED, this->fd, sysconf(_SC_PAGE_SIZE) * (addr.first - 1));
     if (map == MAP_FAILED) {
         close(this->fd);

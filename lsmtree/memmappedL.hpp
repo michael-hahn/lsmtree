@@ -16,6 +16,7 @@
 #include "bloom_filter.hpp"
 #include "comp.h"
 #include "tree.hpp"
+#include <pthread.h>
 
 #define ARRAY_NUM_L 8
 #define FILE_SIZE_L (sysconf(_SC_PAGE_SIZE) * ARRAY_NUM_L)
@@ -49,7 +50,11 @@ public:
     
     std::string get_value_or_blank(int key, Tree* tree);
     
+    void* get_value_or_blank_pthread (void* thread_data);
+    
     void efficient_range(int lower, int upper, Tree* tree, std::map<int, long>& result);
+    
+    void* efficient_range_pthread (void* thread_data);
     
     std::pair<std::string, int> mml_dump (std::set<std::pair<int, bool>, set_compare>& found_once);
 };

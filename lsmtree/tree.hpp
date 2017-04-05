@@ -18,6 +18,7 @@
 #include "bloom_filter.hpp"
 #include "Definitions.hpp"
 #include "comp.h"
+#include <pthread.h>
 
 class Tree {
 public:
@@ -31,9 +32,13 @@ public:
     
     std::string get_value_or_blank (int key);
     
+    void* get_value_or_blank_pthread (void* thread_data);
+    
     std::string range (int lower, int upper);
     
     void efficient_range (int lower, int upper, std::map<int, long>& result);
+    
+    void* efficient_range_pthread (void* thread_data);
     
     void delete_key (int key);
     

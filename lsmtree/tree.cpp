@@ -105,6 +105,22 @@ std::string Tree::get_value_or_blank (int key) {
     }
 }
 
+void* Tree::get_value_or_blank_pthread (void* thread_data) {
+    std::string no_entry = "";
+    thread_data_get* search_key = (thread_data_get*) thread_data;
+    if (in_tree(search_key->key)) {
+        //if (true) {
+        search_key->rtn = this->btree->getValue(search_key->key);
+        pthread_exit(NULL);
+    } else {
+        //std::cout << "LOGINFO:\t\t" << "No match found in tree according to tree bloom filter. No entry." << std::endl;
+        search_key->rtn = "";
+        pthread_exit(NULL);
+    }
+
+}
+
+
 std::string Tree::range (int lower, int upper) {
     return this->btree->getRange(lower, upper);
 }
@@ -136,6 +152,37 @@ void Tree::efficient_range (int lower, int upper, std::map<int, long>& result){
             node = node->next();
         }
     }
+}
+
+void* Tree::efficient_range_pthread (void* thread_data) {
+    thread_data_range* search_key = (thread_data_range*) thread_data;
+    LeafNode* node = this->btree->find_first_leaf_node(this->btree->getRoot());
+    if (!node)
+        pthread_exit(NULL);
+    else {
+        while (node) {
+            for (auto mapping : node->get_mappings()) {
+                if (mapping.first >= search_key->lower && mapping.first < search_key->upper) {
+                    std::pair<int, int> addr = mapping.second->value();
+                    long* map = (long*) mmap(0, sysconf(_SC_PAGE_SIZE), PROT_READ | PROT_WRITE, MAP_SHARED, fd, sysconf(_SC_PAGE_SIZE) * (addr.first - 1));
+                    if (map == MAP_FAILED) {
+                        close(fd);
+                        perror("Error mmapping the file for insertion");
+                        exit(EXIT_FAILURE);
+                    }
+                    long value = map[addr.second - 1];
+                    if (munmap(map, sysconf(_SC_PAGE_SIZE)) == -1) {
+                        perror("Error unmapping the file");
+                        close(fd);
+                        exit(EXIT_FAILURE);
+                    }
+                    search_key->result.insert(std::pair<int, long>(mapping.first, value));
+                }
+            }
+            node = node->next();
+        }
+    }
+    pthread_exit(NULL);
 }
 
 void Tree::delete_key (int key) {

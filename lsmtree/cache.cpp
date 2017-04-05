@@ -128,6 +128,39 @@ std::string Cache::get_value_or_blank (int key, Memmapped* mm1, Memmapped2* mm2,
     return rtn;
 }
 
+void* Cache::get_value_or_blank_pthread (void* thread_data) {
+    std::string rtn = "";
+    thread_data_get* search_key = (thread_data_get*) thread_data;
+    if (in_cache(search_key->key)) {
+        //if (true) {
+        for (std::vector<std::pair<int, long>>::iterator it = this->cache.begin(); it != this->cache.end(); it++) {
+            if (get_stop) {
+                pthread_exit(NULL);
+            }
+            if (it->first == search_key->key) {
+                //std::cout << "LOGINFO:\t\t" << "Find entry in cache: " << it->first << " : " << it->second << std::endl;
+                if (it->second == LONG_MAX) {
+                    //std::cout << "LOGINFO:\t\t" << "Cache finds the deletion entry in key: " << key << std::endl;
+                    std::stringstream out_long;
+                    out_long << LONG_MAX;
+                    rtn = out_long.str();
+                    search_key->rtn = rtn;
+                    get_stop = true;
+                    pthread_exit(NULL);
+                } else {
+                    std::stringstream out;
+                    out << it->second;
+                    rtn = out.str();
+                    get_stop = true;
+                    break;
+                }
+            }
+        }
+    }
+    search_key->rtn = rtn;
+    pthread_exit(NULL);
+}
+
 void Cache::efficient_range(int lower, int upper, Memmapped* mm1, Memmapped2* mm2, MemmappedL* mml, Tree* tree, std::map<int, long>& result) {
     for (std::vector<std::pair<int, long>>::iterator it = this->cache.begin(); it != this->cache.end(); it++) {
         if (it->first >= lower && it->first < upper) {
@@ -137,6 +170,16 @@ void Cache::efficient_range(int lower, int upper, Memmapped* mm1, Memmapped2* mm
     mm1->efficient_range(lower, upper, mm2, mml, tree, result);
     return;
     
+}
+
+void* Cache::efficient_range_pthread (void* thread_data) {
+    thread_data_range* search_key = (thread_data_range*) thread_data;
+    for (std::vector<std::pair<int, long>>::iterator it = this->cache.begin(); it != this->cache.end(); it++) {
+        if (it->first >= search_key->lower && it->first < search_key->upper) {
+            search_key->result.insert(*it); //only the most updated key-value pairs will be inserted
+        }
+    }
+    pthread_exit(NULL);
 }
 
 //We insert the deletion into the cache. The key is marked "delete": we implement as LONG_MAX (valid values are int-sized only).

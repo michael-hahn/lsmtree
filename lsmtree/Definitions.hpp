@@ -23,10 +23,10 @@
 
 #include <cstdlib>
 
-#define VERSION "2.0.2"
-#define VERSION "2.0.2"
-#define MAX_ELEM_NUM 10
-#define INIT_PAGE_NUM 2
+//#define VERSION "2.0.2"
+//#define VERSION "2.0.2"
+#define MAX_ELEM_NUM (sysconf(_SC_PAGE_SIZE)/sizeof(long))
+#define INIT_PAGE_NUM 8
 
 const int DEFAULT_ORDER{10};
 

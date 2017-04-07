@@ -23,7 +23,7 @@
 #include "comp.h"
 #include <pthread.h>
 
-#define MAXCACHESIZE 4
+#define MAXCACHESIZE (sysconf(_SC_PAGE_SIZE)/(sizeof(std::pair<int, long>) * 8))
 
 struct kv_compare {
     bool operator() (const std::pair<int, long> elt1, const std::pair<int, long> elt2) {

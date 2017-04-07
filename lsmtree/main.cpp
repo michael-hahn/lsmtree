@@ -54,23 +54,23 @@ timespec diff(timespec start, timespec end) {
 }
 
 //initialize cache
-Cache cache(20, 0.001);
+Cache cache(MAXCACHESIZE, 0.001);
 
 //initialize second level
-Memmapped mm1("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mm1.dat", 40, 0.001);
+Memmapped mm1("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mm1.dat", MAXCACHESIZE * 2, 0.001);
 
 //initialize third level
-Memmapped2 mm2("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mm2.dat", 100, 0.001);
+Memmapped2 mm2("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mm2.dat", MAXCACHESIZE * 8, 0.001);
 
 //initialize fourth level
-MemmappedL mml("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mml.dat", 500, 0.001);
+MemmappedL mml("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mml.dat", MAXCACHESIZE * 64, 0.001);
 
 //write a binary file
 //for debugging only
 //write_binary_file();
 
 //initialize B+ tree
-Tree btree("/Users/Michael/Documents/Harvard/g1/cs265/xcode/tree.dat", 100000000, 0.01);
+Tree btree("/Users/Michael/Documents/Harvard/g1/cs265/xcode/tree.dat", MAXCACHESIZE * 128, 0.01);
 
 
 void* cache_get_value_pthread_wrapper(void* thread_data) {
@@ -121,9 +121,13 @@ int main(int argc, const char * argv[]) {
 //    long max_insert_nano_time = 0;
 //    int insert_counter = 0;
     
-    double average_get_nano_time = 0.0;
-    long max_get_nano_time = 0;
-    int get_counter = 0;
+//    double average_get_nano_time = 0.0;
+//    long max_get_nano_time = 0;
+//    int get_counter = 0;
+    
+    double average_range_nano_time = 0.0;
+    long max_range_nano_time = 0;
+    int range_counter = 0;
     
  
     //if the input is from the terminal, output an interactive marker at the beginning of the command
@@ -270,13 +274,13 @@ int main(int argc, const char * argv[]) {
                                     std::string longmax = out_long.str();
                                     
                     
-                                    clock_serv_t cclock;
-                                    mach_timespec_t mts;
-                                    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
-                                    clock_get_time(cclock, &mts);
-                                    mach_port_deallocate(mach_task_self(), cclock);
-                                    timer_start.tv_sec = mts.tv_sec;
-                                    timer_start.tv_nsec = mts.tv_nsec;
+//                                    clock_serv_t cclock;
+//                                    mach_timespec_t mts;
+//                                    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+//                                    clock_get_time(cclock, &mts);
+//                                    mach_port_deallocate(mach_task_self(), cclock);
+//                                    timer_start.tv_sec = mts.tv_sec;
+//                                    timer_start.tv_nsec = mts.tv_nsec;
                                     
                                     //std::cout << cache.get_value_or_blank(int_key, &mm1, &mm2, &mml, &btree) << std::endl;
                                     rc = pthread_create(&threads[0], &attr, cache_get_value_pthread_wrapper, (void*)&tdg[0]);
@@ -305,13 +309,13 @@ int main(int argc, const char * argv[]) {
                                         exit(-1);
                                     }
                                     
-                                    clock_serv_t cclock2;
-                                    mach_timespec_t mts2;
-                                    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock2);
-                                    clock_get_time(cclock2, &mts2);
-                                    mach_port_deallocate(mach_task_self(), cclock2);
-                                    timer_end.tv_sec = mts2.tv_sec;
-                                    timer_end.tv_nsec = mts2.tv_nsec;
+//                                    clock_serv_t cclock2;
+//                                    mach_timespec_t mts2;
+//                                    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock2);
+//                                    clock_get_time(cclock2, &mts2);
+//                                    mach_port_deallocate(mach_task_self(), cclock2);
+//                                    timer_end.tv_sec = mts2.tv_sec;
+//                                    timer_end.tv_nsec = mts2.tv_nsec;
                                     
                                     
                                     pthread_attr_destroy(&attr);
@@ -364,11 +368,11 @@ int main(int argc, const char * argv[]) {
                                     get_stop = false;
                                     
                                     
-                                    long get_time = diff(timer_start, timer_end).tv_nsec;
-                                    if (get_time > max_get_nano_time)
-                                        max_get_nano_time = get_time;
-                                    get_counter++;
-                                    average_get_nano_time += (get_time - average_get_nano_time) / get_counter;
+//                                    long get_time = diff(timer_start, timer_end).tv_nsec;
+//                                    if (get_time > max_get_nano_time)
+//                                        max_get_nano_time = get_time;
+//                                    get_counter++;
+//                                    average_get_nano_time += (get_time - average_get_nano_time) / get_counter;
                                 }
                             }
                         } else {
@@ -426,6 +430,15 @@ int main(int argc, const char * argv[]) {
                                                     pthread_attr_init(&attr);
                                                     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
                                                     
+                                                    clock_serv_t cclock;
+                                                    mach_timespec_t mts;
+                                                    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+                                                    clock_get_time(cclock, &mts);
+                                                    mach_port_deallocate(mach_task_self(), cclock);
+                                                    timer_start.tv_sec = mts.tv_sec;
+                                                    timer_start.tv_nsec = mts.tv_nsec;
+
+                                                    
                                                     rc = pthread_create(&threads[0], &attr, cache_range_pthread_wrapper, (void*)&tdr[0]);
                                                     if (rc){
                                                         std::cout << "Error:unable to create thread," << rc << std::endl;
@@ -468,6 +481,22 @@ int main(int argc, const char * argv[]) {
                                                             map_to_print.insert(*it);
                                                         }
                                                     }
+                                                    
+                                                    clock_serv_t cclock2;
+                                                    mach_timespec_t mts2;
+                                                    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock2);
+                                                    clock_get_time(cclock2, &mts2);
+                                                    mach_port_deallocate(mach_task_self(), cclock2);
+                                                    timer_end.tv_sec = mts2.tv_sec;
+                                                    timer_end.tv_nsec = mts2.tv_nsec;
+                                                    
+                                                    long range_time = diff(timer_start, timer_end).tv_nsec;
+                                                    if (range_time > max_range_nano_time)
+                                                        max_range_nano_time = range_time;
+                                                    range_counter++;
+                                                    average_range_nano_time += (range_time - average_range_nano_time) / range_counter;
+
+
                                                     
 //                                                    cache.efficient_range(int_from, int_to, &mm1, &mm2, &mml, &btree, map_to_print);
                                                     for (std::map<int, long>::iterator it = map_to_print.begin(); it != map_to_print.end(); it++) {
@@ -609,8 +638,12 @@ int main(int argc, const char * argv[]) {
 //    std::cout << "Maximum insertion time (nanoseconds): " << max_insert_nano_time << std::endl;
 //    std::cout << "Average insertion time (nanoseconds): " << average_insert_nano_time << std::endl;
     
-    std::cout << "Maximum get time (nanoseconds): " << max_get_nano_time << std::endl;
-    std::cout << "Average get time (nanoseconds): " << average_get_nano_time << std::endl;
+//    std::cout << "Maximum get time (nanoseconds): " << max_get_nano_time << std::endl;
+//    std::cout << "Average get time (nanoseconds): " << average_get_nano_time << std::endl;
+    
+    std::cout << "Maximum range time (nanoseconds): " << max_range_nano_time << std::endl;
+    std::cout << "Average range time (nanoseconds): " << average_range_nano_time << std::endl;
+
     
     mm1.free_mem();
     mm2.free_mem();

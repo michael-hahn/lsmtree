@@ -134,10 +134,15 @@ void* Cache::get_value_or_blank_pthread (void* thread_data) {
     if (in_cache(search_key->key)) {
         //if (true) {
         for (std::vector<std::pair<int, long>>::iterator it = this->cache.begin(); it != this->cache.end(); it++) {
+#ifdef SYNC
             if (get_stop) {
                 pthread_exit(NULL);
             }
+#endif
             if (it->first == search_key->key) {
+#ifdef SYNC
+                get_stop = true;
+#endif
                 //std::cout << "LOGINFO:\t\t" << "Find entry in cache: " << it->first << " : " << it->second << std::endl;
                 if (it->second == LONG_MAX) {
                     //std::cout << "LOGINFO:\t\t" << "Cache finds the deletion entry in key: " << key << std::endl;
@@ -145,13 +150,11 @@ void* Cache::get_value_or_blank_pthread (void* thread_data) {
                     out_long << LONG_MAX;
                     rtn = out_long.str();
                     search_key->rtn = rtn;
-                    get_stop = true;
                     pthread_exit(NULL);
                 } else {
                     std::stringstream out;
                     out << it->second;
                     rtn = out.str();
-                    get_stop = true;
                     break;
                 }
             }

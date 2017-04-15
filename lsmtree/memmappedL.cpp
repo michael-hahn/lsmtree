@@ -184,9 +184,11 @@ void* MemmappedL::get_value_or_blank_pthread (void* thread_data) {
     std::string rtn = "";
     thread_data_get* search_key = (thread_data_get*) thread_data;
     for (int i = this->cur_array_num - 1; i >= 0; i--) {
+#ifdef SYNC
         if (get_stop) {
             pthread_exit(NULL);
         }
+#endif
         if (search_key->key >= this->fenses[i].first && search_key->key <= this->fenses[i].second) {
             if (in_mml(search_key->key, i)) {
                 std::pair<int, long>* map = this->mapped_addr[i];
@@ -194,23 +196,26 @@ void* MemmappedL::get_value_or_blank_pthread (void* thread_data) {
                 size_t right = this->elt_size[i] - 1;
                 size_t mid;
                 while (left <= right) {
+#ifdef SYNC
                     if (get_stop) {
                         pthread_exit(NULL);
                     }
+#endif
                     mid = (left + right) / 2;
                     if (map[mid].first == search_key->key) {
+#ifdef SYNC
+                        get_stop = true;
+#endif
                         if (map[mid].second == LONG_MAX) {
                             std::stringstream out_long;
                             out_long << LONG_MAX;
                             rtn = out_long.str();
                             search_key->rtn = rtn;
-                            get_stop = true;
                             pthread_exit(NULL);
                         } else {
                             std::stringstream out;
                             out << map[mid].second;
                             rtn = out.str();
-                            get_stop = true;
                             break;
                         }
                     } else if (search_key->key > map[mid].first) {

@@ -70,7 +70,7 @@ MemmappedL mml("/Users/Michael/Documents/Harvard/g1/cs265/xcode/mml.dat", MAXCAC
 //write_binary_file();
 
 //initialize B+ tree
-Tree btree("/Users/Michael/Documents/Harvard/g1/cs265/xcode/tree.dat", MAXCACHESIZE * 128, 0.01);
+Tree btree("/Users/Michael/Documents/Harvard/g1/cs265/xcode/tree.dat", MAXCACHESIZE * 128, 0.001);
 
 
 void* cache_get_value_pthread_wrapper(void* thread_data) {
@@ -117,17 +117,23 @@ int main(int argc, const char * argv[]) {
     
     //timer
     timespec timer_start, timer_end;
-//    double average_insert_nano_time = 0.0;
-//    long max_insert_nano_time = 0;
-//    int insert_counter = 0;
+//    double average_put_nano_time = 0.0;
+//    double average_put_sec_time = 0.0;
+//    long max_put_nano_time = 0;
+//    long max_put_sec_time = 0;
+//    int put_counter = 0;
+
+    double average_get_nano_time = 0.0;
+    double average_get_sec_time = 0.0;
+    long max_get_nano_time = 0;
+    long max_get_sec_time = 0;
+    int get_counter = 0;
     
-//    double average_get_nano_time = 0.0;
-//    long max_get_nano_time = 0;
-//    int get_counter = 0;
-    
-    double average_range_nano_time = 0.0;
-    long max_range_nano_time = 0;
-    int range_counter = 0;
+//    double average_range_nano_time = 0.0;
+//    double average_range_sec_time = 0.0;
+//    long max_range_nano_time = 0;
+//    long max_range_sec_time = 0;
+//    int range_counter = 0;
     
  
     //if the input is from the terminal, output an interactive marker at the beginning of the command
@@ -188,7 +194,7 @@ int main(int argc, const char * argv[]) {
                                             //fprintf(stdout, "INSERT key-value pair: %d %d to the database...\n", int_key, int_value);
                                             //TODO: insert to the database here
                                             //database.insert_or_update(int_key, int_value);
-                                            
+//                                            
 //                                            clock_serv_t cclock;
 //                                            mach_timespec_t mts;
 //                                            host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
@@ -197,7 +203,7 @@ int main(int argc, const char * argv[]) {
 //                                            timer_start.tv_sec = mts.tv_sec;
 //                                            timer_start.tv_nsec = mts.tv_nsec;
                                             
-                                              cache.insert(int_key, int_value, &mm1, &mm2, &mml, &btree);
+                                            cache.insert(int_key, int_value, &mm1, &mm2, &mml, &btree);
                                             
 //                                            clock_serv_t cclock2;
 //                                            mach_timespec_t mts2;
@@ -207,12 +213,20 @@ int main(int argc, const char * argv[]) {
 //                                            timer_end.tv_sec = mts2.tv_sec;
 //                                            timer_end.tv_nsec = mts2.tv_nsec;
 //                                            
-//                                            long insert_time = diff(timer_start, timer_end).tv_nsec;
-//                                            if (insert_time > max_insert_nano_time)
-//                                                max_insert_nano_time = insert_time;
-//                                            insert_counter++;
-//                                            average_insert_nano_time += (insert_time - average_insert_nano_time) / insert_counter;
 //                                            
+//                                            long put_nsec_time = diff(timer_start, timer_end).tv_nsec;
+//                                            long put_sec_time = diff(timer_start, timer_end).tv_sec;
+//                                            if (put_sec_time > max_put_sec_time) {
+//                                                max_put_sec_time = put_sec_time;
+//                                                max_put_nano_time = put_nsec_time;
+//                                            } else {
+//                                                if (put_nsec_time > max_put_nano_time)
+//                                                    max_put_nano_time = put_nsec_time;
+//                                            }
+//                                            put_counter++;
+//                                            average_put_nano_time += (put_nsec_time - average_put_nano_time) / put_counter;
+//                                            average_put_sec_time += (put_sec_time - average_put_sec_time) / put_counter;
+
                                         }
                                     }
                                 }
@@ -274,13 +288,13 @@ int main(int argc, const char * argv[]) {
                                     std::string longmax = out_long.str();
                                     
                     
-//                                    clock_serv_t cclock;
-//                                    mach_timespec_t mts;
-//                                    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
-//                                    clock_get_time(cclock, &mts);
-//                                    mach_port_deallocate(mach_task_self(), cclock);
-//                                    timer_start.tv_sec = mts.tv_sec;
-//                                    timer_start.tv_nsec = mts.tv_nsec;
+                                    clock_serv_t cclock;
+                                    mach_timespec_t mts;
+                                    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+                                    clock_get_time(cclock, &mts);
+                                    mach_port_deallocate(mach_task_self(), cclock);
+                                    timer_start.tv_sec = mts.tv_sec;
+                                    timer_start.tv_nsec = mts.tv_nsec;
                                     
                                     //std::cout << cache.get_value_or_blank(int_key, &mm1, &mm2, &mml, &btree) << std::endl;
                                     rc = pthread_create(&threads[0], &attr, cache_get_value_pthread_wrapper, (void*)&tdg[0]);
@@ -308,15 +322,6 @@ int main(int argc, const char * argv[]) {
                                         std::cout << "Error:unable to create thread," << rc << std::endl;
                                         exit(-1);
                                     }
-                                    
-//                                    clock_serv_t cclock2;
-//                                    mach_timespec_t mts2;
-//                                    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock2);
-//                                    clock_get_time(cclock2, &mts2);
-//                                    mach_port_deallocate(mach_task_self(), cclock2);
-//                                    timer_end.tv_sec = mts2.tv_sec;
-//                                    timer_end.tv_nsec = mts2.tv_nsec;
-                                    
                                     
                                     pthread_attr_destroy(&attr);
                                     for(int i=0; i < NUM_THREADS; i++ ){
@@ -365,14 +370,31 @@ int main(int argc, const char * argv[]) {
                                             }
                                         }
                                     }
+#ifdef SYNC
                                     get_stop = false;
+#endif
+                                    
+                                    clock_serv_t cclock2;
+                                    mach_timespec_t mts2;
+                                    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock2);
+                                    clock_get_time(cclock2, &mts2);
+                                    mach_port_deallocate(mach_task_self(), cclock2);
+                                    timer_end.tv_sec = mts2.tv_sec;
+                                    timer_end.tv_nsec = mts2.tv_nsec;
                                     
                                     
-//                                    long get_time = diff(timer_start, timer_end).tv_nsec;
-//                                    if (get_time > max_get_nano_time)
-//                                        max_get_nano_time = get_time;
-//                                    get_counter++;
-//                                    average_get_nano_time += (get_time - average_get_nano_time) / get_counter;
+                                    long get_nsec_time = diff(timer_start, timer_end).tv_nsec;
+                                    long get_sec_time = diff(timer_start, timer_end).tv_sec;
+                                    if (get_sec_time > max_get_sec_time) {
+                                        max_get_sec_time = get_sec_time;
+                                        max_get_nano_time = get_nsec_time;
+                                    } else {
+                                        if (get_nsec_time > max_get_nano_time)
+                                            max_get_nano_time = get_nsec_time;
+                                    }
+                                    get_counter++;
+                                    average_get_nano_time += (get_nsec_time - average_get_nano_time) / get_counter;
+                                    average_get_sec_time += (get_sec_time - average_get_sec_time) / get_counter;
                                 }
                             }
                         } else {
@@ -430,13 +452,13 @@ int main(int argc, const char * argv[]) {
                                                     pthread_attr_init(&attr);
                                                     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
                                                     
-                                                    clock_serv_t cclock;
-                                                    mach_timespec_t mts;
-                                                    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
-                                                    clock_get_time(cclock, &mts);
-                                                    mach_port_deallocate(mach_task_self(), cclock);
-                                                    timer_start.tv_sec = mts.tv_sec;
-                                                    timer_start.tv_nsec = mts.tv_nsec;
+//                                                    clock_serv_t cclock;
+//                                                    mach_timespec_t mts;
+//                                                    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+//                                                    clock_get_time(cclock, &mts);
+//                                                    mach_port_deallocate(mach_task_self(), cclock);
+//                                                    timer_start.tv_sec = mts.tv_sec;
+//                                                    timer_start.tv_nsec = mts.tv_nsec;
 
                                                     
                                                     rc = pthread_create(&threads[0], &attr, cache_range_pthread_wrapper, (void*)&tdr[0]);
@@ -482,19 +504,26 @@ int main(int argc, const char * argv[]) {
                                                         }
                                                     }
                                                     
-                                                    clock_serv_t cclock2;
-                                                    mach_timespec_t mts2;
-                                                    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock2);
-                                                    clock_get_time(cclock2, &mts2);
-                                                    mach_port_deallocate(mach_task_self(), cclock2);
-                                                    timer_end.tv_sec = mts2.tv_sec;
-                                                    timer_end.tv_nsec = mts2.tv_nsec;
-                                                    
-                                                    long range_time = diff(timer_start, timer_end).tv_nsec;
-                                                    if (range_time > max_range_nano_time)
-                                                        max_range_nano_time = range_time;
-                                                    range_counter++;
-                                                    average_range_nano_time += (range_time - average_range_nano_time) / range_counter;
+//                                                    clock_serv_t cclock2;
+//                                                    mach_timespec_t mts2;
+//                                                    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock2);
+//                                                    clock_get_time(cclock2, &mts2);
+//                                                    mach_port_deallocate(mach_task_self(), cclock2);
+//                                                    timer_end.tv_sec = mts2.tv_sec;
+//                                                    timer_end.tv_nsec = mts2.tv_nsec;
+//                                                    
+//                                                    long range_nsec_time = diff(timer_start, timer_end).tv_nsec;
+//                                                    long range_sec_time = diff(timer_start, timer_end).tv_sec;
+//                                                    if (range_sec_time > max_range_sec_time) {
+//                                                        max_range_sec_time = range_sec_time;
+//                                                        max_range_nano_time = range_nsec_time;
+//                                                    } else {
+//                                                        if (range_nsec_time > max_range_nano_time)
+//                                                            max_range_nano_time = range_nsec_time;
+//                                                    }
+//                                                    range_counter++;
+//                                                    average_range_nano_time += (range_nsec_time - average_range_nano_time) / range_counter;
+//                                                    average_range_sec_time += (range_sec_time - average_range_sec_time) / range_counter;
 
 
                                                     
@@ -635,14 +664,20 @@ int main(int argc, const char * argv[]) {
             }
         }
     }
-//    std::cout << "Maximum insertion time (nanoseconds): " << max_insert_nano_time << std::endl;
-//    std::cout << "Average insertion time (nanoseconds): " << average_insert_nano_time << std::endl;
+//    std::cout << "Maximum put time (seconds): " << max_put_sec_time << std::endl;
+//    std::cout << "Average put time (seconds): " << average_put_sec_time << std::endl;
+//    std::cout << "Maximum put time (nanoseconds): " << max_put_nano_time << std::endl;
+//    std::cout << "Average put time (nanoseconds): " << average_put_nano_time << std::endl;
     
-//    std::cout << "Maximum get time (nanoseconds): " << max_get_nano_time << std::endl;
-//    std::cout << "Average get time (nanoseconds): " << average_get_nano_time << std::endl;
-    
-    std::cout << "Maximum range time (nanoseconds): " << max_range_nano_time << std::endl;
-    std::cout << "Average range time (nanoseconds): " << average_range_nano_time << std::endl;
+    std::cout << "Maximum get time (seconds): " << max_get_sec_time << std::endl;
+    std::cout << "Average get time (seconds): " << average_get_sec_time << std::endl;
+    std::cout << "Maximum get time (nanoseconds): " << max_get_nano_time << std::endl;
+    std::cout << "Average get time (nanoseconds): " << average_get_nano_time << std::endl;
+   
+//    std::cout << "Maximum range time (seconds): " << max_range_sec_time << std::endl;
+//    std::cout << "Average range time (seconds): " << average_range_sec_time << std::endl;
+//    std::cout << "Maximum range time (nanoseconds): " << max_range_nano_time << std::endl;
+//    std::cout << "Average range time (nanoseconds): " << average_range_nano_time << std::endl;
 
     
     mm1.free_mem();
